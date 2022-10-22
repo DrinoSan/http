@@ -1,0 +1,12 @@
+"C:\Program Files\JetBrains\CLion 2021.3\bin\cmake\win\bin\cmake.exe" -DCMAKE_BUILD_TYPE=Debug "-DCMAKE_MAKE_PROGRAM=C:/Program Files/JetBrains/CLion 2021.3/bin/ninja/win/ninja.exe" -G Ninja C:\Users\becirbeg\Desktop\simpleHttpServer2
+CMake Error at CMakeLists.txt:5 (add_dependencies):
+  Cannot add target-level dependencies to non-existent target "-lwsock32".
+
+  The add_dependencies works for top-level logical targets created by the
+  add_executable, add_library, or add_custom_target commands.  If you want to
+  add file-level dependencies see the DEPENDS option of the add_custom_target
+  and add_custom_command commands.
+
+
+-- Configuring incomplete, errors occurred!
+See also "C:/Users/becirbeg/Desktop/simpleHttpServer2/cmake-build-debug/CMakeFiles/CMakeOutput.log".

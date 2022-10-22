@@ -1,0 +1,14 @@
+//
+// Created by becirbeg on 22.10.2022.
+//
+
+#ifndef SIMPLEHTTPSERVER2_SIMPLEHTTPSERVER_H
+#define SIMPLEHTTPSERVER2_SIMPLEHTTPSERVER_H
+
+
+class simpleHttpServer {
+
+};
+
+
+#endif //SIMPLEHTTPSERVER2_SIMPLEHTTPSERVER_H
