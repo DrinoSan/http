@@ -28,7 +28,7 @@ class simpleHttpServer {
 
 
         bool startServer(std::string ipAddr = "", int64_t port=8000);
-        void parseRequest(std::string buffer);
+        void parseRequest(const char*);
 };
 
 
