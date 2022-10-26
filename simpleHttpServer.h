@@ -16,9 +16,9 @@
 #include <arpa/inet.h> 
 
 class simpleHttpServer {
-
+    
     private :
-        std::map<std::string, std::string> http_request;
+        bool isParsingFinished( const char* tail );
 
     public :
         simpleHttpServer() {
@@ -29,6 +29,10 @@ class simpleHttpServer {
 
         bool startServer(std::string ipAddr = "", int64_t port=8000);
         void parseRequest(const char*);
+
+    private :
+        std::map<std::string, std::string> http_request;
+
 };
 
 

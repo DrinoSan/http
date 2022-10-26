@@ -51,10 +51,10 @@ bool simpleHttpServer::startServer(std::string ipAddr, int64_t port)
     char buffer[200];
     auto bytesRead = read(connection, buffer, 200);
     parseRequest(buffer);
-    std::cout << "-----------------" << std::endl;
-    std::cout << "The message was: " << buffer;
-    std::cout << "-----------------" << std::endl;
 
+    for( const auto& [key, val] : http_request ) {
+        std::cout << "HEADER: " << key << "\t\t\t\t\t : " << val << "$"<< std::endl;
+    }
     // Send a message to the connection
     std::string response = "Good talking to you\n";
     send(connection, response.c_str(), response.size(), 0);
@@ -63,6 +63,22 @@ bool simpleHttpServer::startServer(std::string ipAddr, int64_t port)
     close(connection);
     close(sockfd);
     return true;
+}
+
+
+bool simpleHttpServer::isParsingFinished( const char* tail ) {
+    // Wir kommen hier rein unser tail ist \n
+    if( *(tail-1) == '\r' && *tail == '\n' && *(tail+1) == '\r' && *(tail+2) == '\n' ) {
+        return true;
+    }
+    else if( *tail == '\r' && *(tail+1) == '\n' && *(tail+2) == '\r' && *(tail+3) == '\n') {
+        return true;
+    }
+    else if( *tail == '\0' && *(tail-1) == '\n' && *(tail-2) == '\r' && *(tail-3) == '\n' && *(tail-4) == '\r' ) {
+        return true;
+    }
+    else
+        return false;
 }
 
 void simpleHttpServer::parseRequest(const char*  buffer) {
@@ -75,10 +91,9 @@ void simpleHttpServer::parseRequest(const char*  buffer) {
                     "Accept-Encoding: gzip, deflate\r\n"
                     "Connection: keep-alive\r\n\r\n";
 
-
-    const char* buf = msg.c_str();
+    const char* buf = buffer;
     const char* msg_end = "\r";
-	const char* new_line = "\n";
+    const char* new_line = "\n";
 
     const char* head = buf;
     const char* tail = buf;
@@ -93,19 +108,19 @@ void simpleHttpServer::parseRequest(const char*  buffer) {
 
     // Find path
     while( tail != msg_end && *tail != ' ' ) ++tail;
-    http_request["Path"] = std::string(head, tail);
+    http_request["Path"] = std::string(++head, tail);
 
     // Find HTTP version
     while( tail != msg_end && *tail == ' ' ) ++tail;
-	head = tail;
+    head = tail;
 
-	while( tail != msg_end && *tail != '\r' ) ++tail;
-	http_request["Version"] = std::string( head, tail );
+    while( tail != msg_end && *tail != '\r' ) ++tail;
+    http_request["Version"] = std::string( head, tail );
 
     if( tail != msg_end) ++tail; // skip '\r'
     if( tail != new_line) ++tail; // skip '\n'
 
-	head = tail;
+    head = tail;
 
     while( *tail != '\0' ) {
         // Find key
@@ -115,21 +130,20 @@ void simpleHttpServer::parseRequest(const char*  buffer) {
         }
         std::string type(head, colon);
         
-        std::cout << "Type: " << type << std::endl;
-
         while( *tail != '\r' ) ++tail;
         // Find value
-        const char* value = colon+1;
-        std::cout << "SANDDDDDDDDDDDDDDDDDD: " << *colon << std::endl;
+        const char* value = colon + 2; // +2 is to skip the space
         std::string val(value, tail);
 
-        std::cout << "Val: " << val << std::endl;
-        head = tail+2;
+        while( *tail != '\n') ++tail;
+        head = tail+1;
 
+        http_request[type] = val;
+        if( isParsingFinished(tail) ) {
+            std::cout << "Finished Parsing!" << std::endl;
+            break;
+        }
+        tail++;
     }
-
-    //for( const auto& [key, val] : http_request ) {
-        //std::cout << "HEADER: " << key << " : " << val << std::endl;
-    //}
-
 }
+
