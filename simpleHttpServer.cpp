@@ -3,147 +3,154 @@
 //
 
 #include "simpleHttpServer.h"
-#include <sys/socket.h>
 #include <cstring>
-        
-bool simpleHttpServer::startServer(std::string ipAddr, int64_t port)
-{
-    // Create a socket (IPv4, TCP)
-    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if( sockfd == -1 ) {
-        std::cout << "Failed to create socket. errno: " << errno << std::endl;
-        exit( EXIT_FAILURE );
-    }
+#include <sys/socket.h>
 
-    // Listen to port 9999 on any address
-    sockaddr_in sockaddr;
-    sockaddr.sin_family = AF_INET;
-    if(ipAddr != "") {
-        inet_pton(AF_INET, ipAddr.c_str(), &(sockaddr.sin_addr));
-    }
-    else {
-        sockaddr.sin_addr.s_addr = INADDR_ANY;
-    }
-    sockaddr.sin_port = htons( port ); // Hton converts number to network byte order
+bool simpleHttpServer::startServer(std::string ipAddr, int64_t port) {
+  // Create a socket (IPv4, TCP)
+  int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+  if (sockfd == -1) {
+    std::cout << "Failed to create socket. errno: " << errno << std::endl;
+    exit(EXIT_FAILURE);
+  }
 
-    if( bind( sockfd, ( struct sockaddr* )&sockaddr, sizeof( sockaddr ) ) < 0 ) {
-        std::cout << "Failed to bind to port " << port << ". errno: " << errno << std::endl;
-        return false;
-    }
+  // Listen to port 9999 on any address
+  sockaddr_in sockaddr;
+  sockaddr.sin_family = AF_INET;
+  if (ipAddr != "") {
+    inet_pton(AF_INET, ipAddr.c_str(), &(sockaddr.sin_addr));
+  } else {
+    sockaddr.sin_addr.s_addr = INADDR_ANY;
+  }
+  sockaddr.sin_port = htons(port); // Hton converts number to network byte order
 
-    std::cout << "Socket FileDeskriptor: " << sockfd << " " << std::endl;
+  if (bind(sockfd, (struct sockaddr *)&sockaddr, sizeof(sockaddr)) < 0) {
+    std::cout << "Failed to bind to port " << port << ". errno: " << errno
+              << std::endl;
+    return false;
+  }
 
-    // Start listening. Hold at most 10 connection in the queue
-    if(listen(sockfd, 10) < 0) {
-        std::cout << "Failed to listen on socket. errno: " << errno << std::endl;
-        exit(EXIT_FAILURE);
-    }
+  std::cout << "Socket FileDeskriptor: " << sockfd << " " << std::endl;
 
-    // Grab connection from the queue
-    auto addrlen = sizeof(sockaddr);
-    int connection = accept(sockfd, (struct sockaddr*)&sockaddr, (socklen_t*)&addrlen);
-    if(connection < 0) {
-        std::cout << "Failed to grab connection. errno: " << errno << std::endl;
-        exit(EXIT_FAILURE);
-    }
+  // Start listening. Hold at most 10 connection in the queue
+  if (listen(sockfd, 10) < 0) {
+    std::cout << "Failed to listen on socket. errno: " << errno << std::endl;
+    exit(EXIT_FAILURE);
+  }
 
-    // Read from the connection
-    char buffer[200];
-    auto bytesRead = read(connection, buffer, 200);
-    parseRequest(buffer);
+  // Grab connection from the queue
+  auto addrlen = sizeof(sockaddr);
+  int connection =
+      accept(sockfd, (struct sockaddr *)&sockaddr, (socklen_t *)&addrlen);
+  if (connection < 0) {
+    std::cout << "Failed to grab connection. errno: " << errno << std::endl;
+    exit(EXIT_FAILURE);
+  }
 
-    for( const auto& [key, val] : http_request ) {
-        std::cout << "HEADER: " << key << "\t\t\t\t\t : " << val << "$"<< std::endl;
-    }
-    // Send a message to the connection
-    std::string response = "Good talking to you\n";
-    send(connection, response.c_str(), response.size(), 0);
+  // Read from the connection
+  char buffer[200];
+  auto bytesRead = read(connection, buffer, 200);
+  parseRequest(buffer);
 
-    // Close the connections
-    close(connection);
-    close(sockfd);
+  // Send a message to the connection
+  std::string response = "Good talking to you\n";
+  send(connection, response.c_str(), response.size(), 0);
+
+  // Close the connections
+  close(connection);
+  close(sockfd);
+  return true;
+}
+
+bool simpleHttpServer::isParsingFinished(const char *tail) {
+  // Wir kommen hier rein unser tail ist \n
+  if (*(tail - 1) == '\r' && *tail == '\n' && *(tail + 1) == '\r' &&
+      *(tail + 2) == '\n') {
     return true;
+  } else if (*tail == '\r' && *(tail + 1) == '\n' && *(tail + 2) == '\r' &&
+             *(tail + 3) == '\n') {
+    return true;
+  } else if (*tail == '\0' && *(tail - 1) == '\n' && *(tail - 2) == '\r' &&
+             *(tail - 3) == '\n' && *(tail - 4) == '\r') {
+    return true;
+  } else
+    return false;
 }
 
+void simpleHttpServer::parseRequest(const char *buffer) {
+  std::string msg =
+      "GET / HTTP/1.1\r\n"
+      "Host: 192.241.213.46:6880\r\n"
+      "Upgrade-Insecure-Requests: 1\r\n"
+      "Accept: "
+      "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\n"
+      "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) "
+      "AppleWebKit/602.4.8 (KHTML, like Gecko) Version/10.0.3 "
+      "Safari/602.4.8\r\n"
+      "Accept-Language: en-us\r\n"
+      "Accept-Encoding: gzip, deflate\r\n"
+      "Connection: keep-alive\r\n\r\n";
 
-bool simpleHttpServer::isParsingFinished( const char* tail ) {
-    // Wir kommen hier rein unser tail ist \n
-    if( *(tail-1) == '\r' && *tail == '\n' && *(tail+1) == '\r' && *(tail+2) == '\n' ) {
-        return true;
+  const char *buf = buffer;
+  const char *msg_end = "\r";
+  const char *new_line = "\n";
+
+  const char *head = buf;
+  const char *tail = buf;
+  const char *runner = buf;
+
+  // Find request type
+  while (tail != msg_end && *tail != ' ')
+    ++tail;
+  http_request["Type"] = std::string(head, tail);
+
+  // We need to increment tail because it is currently on the whitspace
+  head = tail++;
+
+  // Find path
+  while (tail != msg_end && *tail != ' ')
+    ++tail;
+  http_request["Path"] = std::string(++head, tail);
+
+  // Find HTTP version
+  while (tail != msg_end && *tail == ' ')
+    ++tail;
+  head = tail;
+
+  while (tail != msg_end && *tail != '\r')
+    ++tail;
+  http_request["Version"] = std::string(head, tail);
+
+  if (tail != msg_end)
+    ++tail; // skip '\r'
+  if (tail != new_line)
+    ++tail; // skip '\n'
+
+  head = tail;
+
+  while (*tail != '\0') {
+    // Find key
+    const char *colon = strchr(head, ':');
+    if (colon == NULL) {
+      std::cout << "Shit header" << std::endl;
     }
-    else if( *tail == '\r' && *(tail+1) == '\n' && *(tail+2) == '\r' && *(tail+3) == '\n') {
-        return true;
+    std::string type(head, colon);
+
+    while (*tail != '\r')
+      ++tail;
+    // Find value
+    const char *value = colon + 2; // +2 is to skip the space
+    std::string val(value, tail);
+
+    while (*tail != '\n')
+      ++tail;
+    head = tail + 1;
+
+    http_request[type] = val;
+    if (isParsingFinished(tail)) {
+      std::cout << "Finished Parsing!" << std::endl;
+      break;
     }
-    else if( *tail == '\0' && *(tail-1) == '\n' && *(tail-2) == '\r' && *(tail-3) == '\n' && *(tail-4) == '\r' ) {
-        return true;
-    }
-    else
-        return false;
+    tail++;
+  }
 }
-
-void simpleHttpServer::parseRequest(const char*  buffer) {
-    std::string msg = "GET / HTTP/1.1\r\n"
-                    "Host: 192.241.213.46:6880\r\n"
-                    "Upgrade-Insecure-Requests: 1\r\n"
-                    "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\n"
-                    "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/602.4.8 (KHTML, like Gecko) Version/10.0.3 Safari/602.4.8\r\n"
-                    "Accept-Language: en-us\r\n"
-                    "Accept-Encoding: gzip, deflate\r\n"
-                    "Connection: keep-alive\r\n\r\n";
-
-    const char* buf = buffer;
-    const char* msg_end = "\r";
-    const char* new_line = "\n";
-
-    const char* head = buf;
-    const char* tail = buf;
-    const char* runner = buf;
-
-    // Find request type
-    while( tail != msg_end && *tail != ' ' ) ++tail;
-    http_request["Type"] = std::string(head, tail);
-
-    // We need to increment tail because it is currently on the whitspace
-    head = tail++;
-
-    // Find path
-    while( tail != msg_end && *tail != ' ' ) ++tail;
-    http_request["Path"] = std::string(++head, tail);
-
-    // Find HTTP version
-    while( tail != msg_end && *tail == ' ' ) ++tail;
-    head = tail;
-
-    while( tail != msg_end && *tail != '\r' ) ++tail;
-    http_request["Version"] = std::string( head, tail );
-
-    if( tail != msg_end) ++tail; // skip '\r'
-    if( tail != new_line) ++tail; // skip '\n'
-
-    head = tail;
-
-    while( *tail != '\0' ) {
-        // Find key
-        const char* colon = strchr(head, ':');
-        if( colon == NULL ) {
-            std::cout << "Shit header" << std::endl;
-        }
-        std::string type(head, colon);
-        
-        while( *tail != '\r' ) ++tail;
-        // Find value
-        const char* value = colon + 2; // +2 is to skip the space
-        std::string val(value, tail);
-
-        while( *tail != '\n') ++tail;
-        head = tail+1;
-
-        http_request[type] = val;
-        if( isParsingFinished(tail) ) {
-            std::cout << "Finished Parsing!" << std::endl;
-            break;
-        }
-        tail++;
-    }
-}
-

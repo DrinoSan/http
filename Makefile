@@ -123,6 +123,87 @@ simpleHttpServer2/fast:
 	$(MAKE) -f CMakeFiles/simpleHttpServer2.dir/build.make CMakeFiles/simpleHttpServer2.dir/build
 .PHONY : simpleHttpServer2/fast
 
+HttpMessage.o: HttpMessage.cpp.o
+
+.PHONY : HttpMessage.o
+
+# target to build an object file
+HttpMessage.cpp.o:
+	$(MAKE) -f CMakeFiles/simpleHttpServer2.dir/build.make CMakeFiles/simpleHttpServer2.dir/HttpMessage.cpp.o
+.PHONY : HttpMessage.cpp.o
+
+HttpMessage.i: HttpMessage.cpp.i
+
+.PHONY : HttpMessage.i
+
+# target to preprocess a source file
+HttpMessage.cpp.i:
+	$(MAKE) -f CMakeFiles/simpleHttpServer2.dir/build.make CMakeFiles/simpleHttpServer2.dir/HttpMessage.cpp.i
+.PHONY : HttpMessage.cpp.i
+
+HttpMessage.s: HttpMessage.cpp.s
+
+.PHONY : HttpMessage.s
+
+# target to generate assembly for a file
+HttpMessage.cpp.s:
+	$(MAKE) -f CMakeFiles/simpleHttpServer2.dir/build.make CMakeFiles/simpleHttpServer2.dir/HttpMessage.cpp.s
+.PHONY : HttpMessage.cpp.s
+
+HttpRequest.o: HttpRequest.cpp.o
+
+.PHONY : HttpRequest.o
+
+# target to build an object file
+HttpRequest.cpp.o:
+	$(MAKE) -f CMakeFiles/simpleHttpServer2.dir/build.make CMakeFiles/simpleHttpServer2.dir/HttpRequest.cpp.o
+.PHONY : HttpRequest.cpp.o
+
+HttpRequest.i: HttpRequest.cpp.i
+
+.PHONY : HttpRequest.i
+
+# target to preprocess a source file
+HttpRequest.cpp.i:
+	$(MAKE) -f CMakeFiles/simpleHttpServer2.dir/build.make CMakeFiles/simpleHttpServer2.dir/HttpRequest.cpp.i
+.PHONY : HttpRequest.cpp.i
+
+HttpRequest.s: HttpRequest.cpp.s
+
+.PHONY : HttpRequest.s
+
+# target to generate assembly for a file
+HttpRequest.cpp.s:
+	$(MAKE) -f CMakeFiles/simpleHttpServer2.dir/build.make CMakeFiles/simpleHttpServer2.dir/HttpRequest.cpp.s
+.PHONY : HttpRequest.cpp.s
+
+HttpResponse.o: HttpResponse.cpp.o
+
+.PHONY : HttpResponse.o
+
+# target to build an object file
+HttpResponse.cpp.o:
+	$(MAKE) -f CMakeFiles/simpleHttpServer2.dir/build.make CMakeFiles/simpleHttpServer2.dir/HttpResponse.cpp.o
+.PHONY : HttpResponse.cpp.o
+
+HttpResponse.i: HttpResponse.cpp.i
+
+.PHONY : HttpResponse.i
+
+# target to preprocess a source file
+HttpResponse.cpp.i:
+	$(MAKE) -f CMakeFiles/simpleHttpServer2.dir/build.make CMakeFiles/simpleHttpServer2.dir/HttpResponse.cpp.i
+.PHONY : HttpResponse.cpp.i
+
+HttpResponse.s: HttpResponse.cpp.s
+
+.PHONY : HttpResponse.s
+
+# target to generate assembly for a file
+HttpResponse.cpp.s:
+	$(MAKE) -f CMakeFiles/simpleHttpServer2.dir/build.make CMakeFiles/simpleHttpServer2.dir/HttpResponse.cpp.s
+.PHONY : HttpResponse.cpp.s
+
 main.o: main.cpp.o
 
 .PHONY : main.o
@@ -186,6 +267,15 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
 	@echo "... simpleHttpServer2"
+	@echo "... HttpMessage.o"
+	@echo "... HttpMessage.i"
+	@echo "... HttpMessage.s"
+	@echo "... HttpRequest.o"
+	@echo "... HttpRequest.i"
+	@echo "... HttpRequest.s"
+	@echo "... HttpResponse.o"
+	@echo "... HttpResponse.i"
+	@echo "... HttpResponse.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
