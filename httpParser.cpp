@@ -1,5 +1,11 @@
-#include "httpParse.h"
+// System Headers
+#include <cstddef>
+#include <iostream>
+#include <string_view>
 
+// Project Headers
+#include "HttpParser.h"
+#include "HttpRequest.h"
 
 // const char *msg =
 //"GET / HTTP/1.1\r\n"
@@ -15,23 +21,22 @@
 //"Connection: keep-alive\r\n\r\n";
 //
 
-bool HttpParser::parseHeaders(HttpRequest* httpReq) {
+
+bool HttpParser::parseMethodePathVersion(HttpRequest* httpReq) {
+
   char *begin, *colon, *end = httpReq->httpRequestBlob;
   char *buf = httpReq->httpRequestBlob;
-  char *msg_end = "\r";
-  char *new_line = "\n";
+  const char *msg_end = "\r";
+  const char *new_line = "\n";
 
   char *head = buf;
   char *tail = buf;
-  char *runner = buf;
 
   // Find request type
   while (tail != msg_end && *tail != ' ')
     ++tail;
-  //httpHeaders["Type"] = std::string(head, tail);
-  headers->key = std::string_view("Type", 4);
-  headers->value = std::string_view(head, (size_t)(tail-head));
-  headers++;
+  // httpHeaders["Type"] = std::string(head, tail);
+  httpReq->httpMethode = std::string(head, tail);
 
   // We need to increment tail because it is currently on the whitspace
   head = tail++;
@@ -39,9 +44,7 @@ bool HttpParser::parseHeaders(HttpRequest* httpReq) {
   // Find path
   while (tail != msg_end && *tail != ' ')
     ++tail;
-  headers->key = std::string_view("Path", 4);
-  headers->value = std::string_view(head, (size_t)((++tail)-head));
-  headers++;
+  httpReq->httpUri = std::string(++head, tail);
 
   // Find HTTP version
   while (tail != msg_end && *tail == ' ')
@@ -50,21 +53,67 @@ bool HttpParser::parseHeaders(HttpRequest* httpReq) {
 
   while (tail != msg_end && *tail != '\r')
     ++tail;
-  headers->key = std::string_view("Version", 7);
-  headers->value = std::string_view(head, (size_t)((tail)-head));
-  headers++;
+  httpReq->httpVersion = std::string(head, tail);
 
-  httpMessageBlob = tail + 2;
+  // To skip \r\n
+  httpReq->httpRequestBlob = tail + 2;
+  return true;
+}
 
+
+bool HttpParser::parseRequest(HttpRequest *httpReq,
+                              struct HttpMessage::HEADERS *headers) {
+
+  char *begin, *end = httpReq->httpRequestBlob;
+
+  parseMethodePathVersion(httpReq);
   for (size_t i = 0; i < NUM_HTTP_HEADERS; ++i) {
-      // *(httpMessageBlob++) |= 32 == toLowerCase
-    for (begin = httpMessageBlob; (*httpMessageBlob != ':') && (*(unsigned char*)httpMessageBlob) > 32; *(httpMessageBlob++) |= 32);
-    headers->key = std::string_view(begin, (size_t)(httpMessageBlob - begin)); 
+    // *(httpMessageBlob++) |= 32 is a way to make everything lowercase
+    for (begin = httpReq->httpRequestBlob;
+         (*httpReq->httpRequestBlob != ':') &&
+         (*(unsigned char *)httpReq->httpRequestBlob) > 32;
+         *(httpReq->httpRequestBlob++) |= 32)
+      ;
+    headers->key =
+        std::string_view(begin, (size_t)(httpReq->httpRequestBlob - begin));
+
+    // Checking if space is after :
+    if(httpReq->httpRequestBlob[0] == ':' && httpReq->httpRequestBlob[1] == ' ') {
+        httpReq->httpRequestBlob+=2;
+    }
+    else {
+        std::cout << "Headers are not correctly formated!" << std::endl;
+        break;
+    }
+
+    begin = httpReq->httpRequestBlob;
+    while(*httpReq->httpRequestBlob != '\r') ++httpReq->httpRequestBlob;
+    end = httpReq->httpRequestBlob;
+retry:
+    if(*end == '\r') {
+        if(*(end+1) == '\n') {
+            end += 1;
+            ++httpReq->httpRequestBlob;
+            if(*(end + 1 ) == '\0') {
+                std::cout << "FINISHED PARSING!!!!" << std::endl;
+                break;
+            }
+            ++end;
+            goto retry;
+        }
+    }
+
+    headers->value = std::string_view(begin, (size_t)(httpReq->httpRequestBlob - begin));
+    httpReq->httpRequestBlob+=1;
 
 
-    std::string header(begin, httpMessageBlob);
-    std::cout << "$" << header << std::endl;
-    break;
+    std::cout << "KEY  : " << headers->key << std::endl;
+    std::cout << "Value: " << headers->value << std::endl;
+    std::cout << "----------------" << std::endl;
+    
+
+
+
   }
 
   return false;

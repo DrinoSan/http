@@ -1,8 +1,11 @@
 #include <cstdlib>
 #include <iostream>
+#include <string>
 
 #include "HttpMessage.h"
-#include "simpleHttpServer.h"
+#include "HttpParser.h"
+#include "HttpRequest.h"
+//#include "simpleHttpServer.h"
 
 int main() {
   // std::cout << "Hello, World!" << std::endl;
@@ -13,7 +16,7 @@ int main() {
   // std::cout << "PORT: 8000" << std::endl;
   // server.startServer("0.0.0.0", 8000);
   //}
-  char *msg =
+  char msg[] =
       "GET / HTTP/1.1\r\n"
       "Host: 192.241.213.46:6880\r\n"
       "Upgrade-Insecure-Requests: 1\r\n"
@@ -26,8 +29,14 @@ int main() {
       "Accept-Encoding: gzip, deflate\r\n"
       "Connection: keep-alive\r\n\r\n";
 
-  HttpMessage httpMessage;
-  httpMessage.parseHeaders(msg);
+  HttpRequest httpRequest{msg};
+  HttpParser httpParser;
+  httpParser.parseRequest(&httpRequest, httpRequest.headers);
+
+  std::cout << "-.-.-.-.-.-.-.-.-.-.-.-" << std::endl;
+  std::cout << "VERSION: " << httpRequest.httpVersion << std::endl;
+  std::cout << "URI    : " << httpRequest.httpUri << std::endl;
+  std::cout << "Methode: " << httpRequest.httpMethode << std::endl;
 
   return 0;
 }

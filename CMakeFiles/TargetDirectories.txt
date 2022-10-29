@@ -1,0 +1,3 @@
+/Users/sandi/DEV/http/CMakeFiles/simpleHttpServer2.dir
+/Users/sandi/DEV/http/CMakeFiles/edit_cache.dir
+/Users/sandi/DEV/http/CMakeFiles/rebuild_cache.dir
