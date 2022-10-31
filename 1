@@ -6,7 +6,6 @@
 #include "HttpRequest.h"
 #include <cstring>
 #include <sys/socket.h>
-#include <utility>
 
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa) {
@@ -16,13 +15,6 @@ void *get_in_addr(struct sockaddr *sa) {
 
   return &(((struct sockaddr_in6 *)sa)->sin6_addr);
 }
-
-void simpleHttpServer::registerRequestHandler(std::string uri, HttpRequest::HttpMethode methode,
-                            HttpRequestHandler_t callback) {
-
-  requestHandler[uri].insert(std::make_pair(methode, callback));
-}
-
 
 bool simpleHttpServer::startServer(char buffer[], std::string ipAddr,
                                    int64_t port) {
@@ -82,29 +74,15 @@ bool simpleHttpServer::startServer(char buffer[], std::string ipAddr,
       HttpRequest httpRequest{buffer};
       httpParser.parseRequest(&httpRequest, httpRequest.headers);
 
-      auto it_uri = requestHandler.find(httpRequest.httpUri);
-      if( it_uri == requestHandler.end() ) {
-        std::cout << "Path not registerd" << std::endl;
-        return false;
-      }
-      auto it_methode = it_uri->second.find(httpRequest.httpMethode);
-      if( it_methode == it_uri->second.end() ) {
-        std::cout << "Methode not registed for this path: " << httpRequest.httpUri << std::endl;
-        return false;
-      }
-      auto resp = it_methode->second;
-      auto responseBlob = resp(httpRequest);
-      send( newConnectionFD, responseBlob.httpRequestBlob_2.c_str(), responseBlob.httpRequestBlob_2.size(), 0);
+      std::cout << "-------> Called Path:: " << httpRequest.httpUri << std::endl;
+      std::string resp = "HTTP/1.1 200 OK\r\n"
+                         "Server: Hello\r\n"
+                         "Content-Length: 13\r\n"
+                         "Content-Type: text/plain\r\n"
+                         "\r\n"
+                         "Hello";
 
-       
-      //std::string resp_2 = "HTTP/1.1 200 OK\r\n"
-                         //"Server: Hello\r\n"
-                         //"Content-Length: 22\r\n"
-                         //"Content-Type: text/plain\r\n"
-                         //"\r\n"
-                         //"Hello, world!!!tester!";
-
-      //send(newConnectionFD, resp_2.c_str(), resp_2.size(), 0);
+      send(newConnectionFD, resp.c_str(), resp.size(), 0);
       close(newConnectionFD);
       exit(0);
     }

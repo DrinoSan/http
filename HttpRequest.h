@@ -12,13 +12,26 @@
 #include "HttpMessage.h"
 
 class HttpRequest : public HttpMessage {
+public:
+  enum class HttpMethode {
+    GET,
+    POST,
+    DELETE,
+    PUT,
+    UPDATE,
+    UNKNOWN,
+  };
 
 public:
-    HttpRequest(char* msg);
-    char* parseMethodePathVersion(char* msg);
+  HttpRequest(char *msg);
+  HttpRequest() = default;
+  ~HttpRequest() = default;
+  char *parseMethodePathVersion(char *msg);
+  std::string httpMethodeToString(HttpMethode method);
+  HttpMethode stringToHttpMethode(std::string methode);
 
 public:
-  std::string httpMethode;
+  HttpMethode httpMethode;
   std::string httpUri;
 };
 

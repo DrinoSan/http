@@ -5,8 +5,6 @@
 #ifndef SIMPLEHTTPSERVER2_HTTPPARSER_H
 #define SIMPLEHTTPSERVER2_HTTPPARSER_H
 
-
-
 // System headers
 #include <string_view>
 
@@ -15,10 +13,11 @@
 #include "HttpRequest.h"
 
 class HttpParser {
-    public :
-        bool parseRequest(HttpRequest* httpReq, struct HttpMessage::HEADERS *headers);
-        bool parseMethodePathVersion(HttpRequest* httpReq);
+private:
+  bool parseMethodePathVersion(HttpRequest *httpReq);
+
+public:
+  bool parseRequest(HttpRequest *httpReq, std::map<std::string, std::string>& headers);
 };
 
-
-#endif  //SIMPLEHTTPSERVER2_HTTPPARSER_H
+#endif // SIMPLEHTTPSERVER2_HTTPPARSER_H

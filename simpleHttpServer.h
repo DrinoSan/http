@@ -5,35 +5,44 @@
 #ifndef SIMPLEHTTPSERVER2_SIMPLEHTTPSERVER_H
 #define SIMPLEHTTPSERVER2_SIMPLEHTTPSERVER_H
 
-#include <string>
+// System Headers
+#include <arpa/inet.h>
+#include <cstdlib>
+#include <functional>
 #include <iostream>
 #include <map>
-
-#include <cstdlib>
-#include <unistd.h>
-#include <sys/socket.h>
 #include <netinet/in.h>
-#include <arpa/inet.h> 
+#include <string>
+#include <sys/socket.h>
+#include <unistd.h>
+
+// Project Headers
+#include "HttpParser.h"
+#include "HttpRequest.h"
+#include "HttpResponse.h"
+#include "HttpMessage.h"
+
+// Defining of some values
+#define BACK_LOG 10
 
 class simpleHttpServer {
-    
-    private :
-        bool isParsingFinished( const char* tail );
+private:
+public:
 
-    public :
-        simpleHttpServer() {
-            std::cout << "Starting Server" << std::endl; 
-        }
-        ~simpleHttpServer() = default;
+  simpleHttpServer() { std::cout << "Starting Server" << std::endl; }
+  ~simpleHttpServer() = default;
 
+  using HttpRequestHandler_t = std::function<HttpResponse(const HttpRequest&)>;
 
-        bool startServer(std::string ipAddr = "", int64_t port=8000);
-        void parseRequest(const char*);
+  void registerRequestHandler(std::string uri, HttpRequest::HttpMethode methode,
+                              HttpRequestHandler_t callback);
 
-    private :
-        std::map<std::string, std::string> http_request;
+  bool startServer(char buffer[], std::string ipAddr = "", int64_t port = 8000);
 
+private:
+  HttpParser httpParser;
+  std::map<std::string, std::string> http_request;
+  std::map<std::string , std::map<HttpRequest::HttpMethode , HttpRequestHandler_t >> requestHandler;
 };
 
-
-#endif //SIMPLEHTTPSERVER2_SIMPLEHTTPSERVER_H
+#endif // SIMPLEHTTPSERVER2_SIMPLEHTTPSERVER_H

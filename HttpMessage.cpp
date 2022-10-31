@@ -9,8 +9,4 @@
 #include "HttpMessage.h"
 #include "HttpParser.h"
 
-HttpMessage::HttpMessage(char* msg) : httpRequestBlob{msg} {
-    std::cout << "Constructing HttpMessage object!" << std::endl;
-}
-
-
+HttpMessage::HttpMessage(char *msg) : httpRequestBlob{msg} {}
