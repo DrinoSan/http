@@ -225,6 +225,30 @@ HttpResponse.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/simpleHttpServer2.dir/build.make CMakeFiles/simpleHttpServer2.dir/HttpResponse.cpp.s
 .PHONY : HttpResponse.cpp.s
 
+SimpleHttpServer.o: SimpleHttpServer.cpp.o
+.PHONY : SimpleHttpServer.o
+
+# target to build an object file
+SimpleHttpServer.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/simpleHttpServer2.dir/build.make CMakeFiles/simpleHttpServer2.dir/SimpleHttpServer.cpp.o
+.PHONY : SimpleHttpServer.cpp.o
+
+SimpleHttpServer.i: SimpleHttpServer.cpp.i
+.PHONY : SimpleHttpServer.i
+
+# target to preprocess a source file
+SimpleHttpServer.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/simpleHttpServer2.dir/build.make CMakeFiles/simpleHttpServer2.dir/SimpleHttpServer.cpp.i
+.PHONY : SimpleHttpServer.cpp.i
+
+SimpleHttpServer.s: SimpleHttpServer.cpp.s
+.PHONY : SimpleHttpServer.s
+
+# target to generate assembly for a file
+SimpleHttpServer.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/simpleHttpServer2.dir/build.make CMakeFiles/simpleHttpServer2.dir/SimpleHttpServer.cpp.s
+.PHONY : SimpleHttpServer.cpp.s
+
 main.o: main.cpp.o
 .PHONY : main.o
 
@@ -249,30 +273,6 @@ main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/simpleHttpServer2.dir/build.make CMakeFiles/simpleHttpServer2.dir/main.cpp.s
 .PHONY : main.cpp.s
 
-simpleHttpServer.o: simpleHttpServer.cpp.o
-.PHONY : simpleHttpServer.o
-
-# target to build an object file
-simpleHttpServer.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/simpleHttpServer2.dir/build.make CMakeFiles/simpleHttpServer2.dir/simpleHttpServer.cpp.o
-.PHONY : simpleHttpServer.cpp.o
-
-simpleHttpServer.i: simpleHttpServer.cpp.i
-.PHONY : simpleHttpServer.i
-
-# target to preprocess a source file
-simpleHttpServer.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/simpleHttpServer2.dir/build.make CMakeFiles/simpleHttpServer2.dir/simpleHttpServer.cpp.i
-.PHONY : simpleHttpServer.cpp.i
-
-simpleHttpServer.s: simpleHttpServer.cpp.s
-.PHONY : simpleHttpServer.s
-
-# target to generate assembly for a file
-simpleHttpServer.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/simpleHttpServer2.dir/build.make CMakeFiles/simpleHttpServer2.dir/simpleHttpServer.cpp.s
-.PHONY : simpleHttpServer.cpp.s
-
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -294,12 +294,12 @@ help:
 	@echo "... HttpResponse.o"
 	@echo "... HttpResponse.i"
 	@echo "... HttpResponse.s"
+	@echo "... SimpleHttpServer.o"
+	@echo "... SimpleHttpServer.i"
+	@echo "... SimpleHttpServer.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
-	@echo "... simpleHttpServer.o"
-	@echo "... simpleHttpServer.i"
-	@echo "... simpleHttpServer.s"
 .PHONY : help
 
 

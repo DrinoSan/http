@@ -2,13 +2,17 @@
 // Created by becirbeg on 22.10.2022.
 //
 
-#include "simpleHttpServer.h"
+#include "SimpleHttpServer.h"
 #include "HttpRequest.h"
 #include <cstring>
+#include <netinet/in.h>
 #include <sys/socket.h>
 #include <utility>
 
 // get sockaddr, IPv4 or IPv6:
+// This Function is important for the inet_ntop function later on if we use
+// sockaddr_storage
+//----------------------------------------------------------------------------
 void *get_in_addr(struct sockaddr *sa) {
   if (sa->sa_family == AF_INET) {
     return &(((struct sockaddr_in *)sa)->sin_addr);
@@ -17,13 +21,15 @@ void *get_in_addr(struct sockaddr *sa) {
   return &(((struct sockaddr_in6 *)sa)->sin6_addr);
 }
 
-void simpleHttpServer::registerRequestHandler(std::string uri, HttpRequest::HttpMethode methode,
-                            HttpRequestHandler_t callback) {
+//----------------------------------------------------------------------------
+void simpleHttpServer::registerRequestHandler(std::string uri,
+                                              HttpRequest::HttpMethode methode,
+                                              HttpRequestHandler_t callback) {
 
   requestHandler[uri].insert(std::make_pair(methode, callback));
 }
 
-
+//----------------------------------------------------------------------------
 bool simpleHttpServer::startServer(char buffer[], std::string ipAddr,
                                    int64_t port) {
   // Create a socket (IPv4, TCP)
@@ -59,10 +65,11 @@ bool simpleHttpServer::startServer(char buffer[], std::string ipAddr,
 
   // Grab connection from the queue
   auto addrlen = sizeof(sockaddr);
-  struct sockaddr_storage their_addr; // connector's address information
+  // struct sockaddr_storage their_addr; // connector's address information
+  struct sockaddr_in their_addr;
 
   int newConnectionFD;
-  char s[INET6_ADDRSTRLEN];
+  char s[INET_ADDRSTRLEN];
 
   while ((newConnectionFD = accept(sockfd, (struct sockaddr *)&sockaddr,
                                    (socklen_t *)&their_addr)) > 0) {
@@ -70,8 +77,9 @@ bool simpleHttpServer::startServer(char buffer[], std::string ipAddr,
       std::cout << "Failed to grab connection. errno: " << errno << std::endl;
       exit(EXIT_FAILURE);
     }
-    inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr),
-              s, sizeof s);
+
+    // Converting
+    inet_ntop(AF_INET, &(their_addr.sin_addr), s, INET_ADDRSTRLEN);
     std::cout << "Got Connection from: " << s << std::endl;
 
     if (fork() == 0) {
@@ -83,28 +91,21 @@ bool simpleHttpServer::startServer(char buffer[], std::string ipAddr,
       httpParser.parseRequest(&httpRequest, httpRequest.headers);
 
       auto it_uri = requestHandler.find(httpRequest.httpUri);
-      if( it_uri == requestHandler.end() ) {
+      if (it_uri == requestHandler.end()) {
         std::cout << "Path not registerd" << std::endl;
         return false;
       }
       auto it_methode = it_uri->second.find(httpRequest.httpMethode);
-      if( it_methode == it_uri->second.end() ) {
-        std::cout << "Methode not registed for this path: " << httpRequest.httpUri << std::endl;
+      if (it_methode == it_uri->second.end()) {
+        std::cout << "Methode not registed for this path: "
+                  << httpRequest.httpUri << std::endl;
         return false;
       }
       auto resp = it_methode->second;
-      auto responseBlob = resp(httpRequest);
-      send( newConnectionFD, responseBlob.httpRequestBlob_2.c_str(), responseBlob.httpRequestBlob_2.size(), 0);
+      auto response = resp(httpRequest);
+      send(newConnectionFD, response.httpMessage, response.httpMessageLength,
+           0);
 
-       
-      //std::string resp_2 = "HTTP/1.1 200 OK\r\n"
-                         //"Server: Hello\r\n"
-                         //"Content-Length: 22\r\n"
-                         //"Content-Type: text/plain\r\n"
-                         //"\r\n"
-                         //"Hello, world!!!tester!";
-
-      //send(newConnectionFD, resp_2.c_str(), resp_2.size(), 0);
       close(newConnectionFD);
       exit(0);
     }

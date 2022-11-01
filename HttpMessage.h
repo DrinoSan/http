@@ -18,18 +18,16 @@ class HttpMessage {
 public:
   HttpMessage(char *msg);
   HttpMessage() = default;
-  //struct HEADERS {
-    //std::string_view key;
-    //std::string_view value;
-  //} headers[NUM_HTTP_HEADERS];
   std::map<std::string, std::string> headers;
 
 private:
 public:
-  std::string httpVersion;
+  std::string httpVersion{"HTTP/1.1"};
   std::string httpBody;
-  char *httpRequestBlob;
-  std::string httpRequestBlob_2;
+  
+  char *httpMessage;
+  size_t httpMessageLength;
+  std::string httpResponseBody;
 
 };
 

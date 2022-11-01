@@ -38,12 +38,14 @@ public:
     BadGateway = 502,
     ServiceUnvailable = 503,
     GatewayTimeout = 504,
-    HttpVersionNotSupported = 505
+    HttpVersionNotSupported = 505,
   };
 
   HttpResponse(HttpStatusCode code);
   HttpStatusCode statusCode;
-  void setHeader(const std::string& key, const std::string& value);
+  void setHeader(const std::string &key, const std::string &value);
+  std::string httpStatusCodeToString(HttpStatusCode code);
+  void buildResponseBody(std::string respMsg);
 };
 
 #endif // SIMPLEHTTPSERVER2_HTTPRESPONSE_H

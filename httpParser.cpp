@@ -22,10 +22,11 @@
 //"Connection: keep-alive\r\n\r\n";
 //
 
+//----------------------------------------------------------------------------
 bool HttpParser::parseMethodePathVersion(HttpRequest *httpReq) {
 
-  char *begin, *colon, *end = httpReq->httpRequestBlob;
-  char *buf = httpReq->httpRequestBlob;
+  char *begin, *colon, *end = httpReq->httpMessage;
+  char *buf = httpReq->httpMessage;
   const char *msg_end = "\r";
   const char *new_line = "\n";
 
@@ -36,8 +37,9 @@ bool HttpParser::parseMethodePathVersion(HttpRequest *httpReq) {
   while (tail != msg_end && *tail != ' ')
     ++tail;
   // httpHeaders["Type"] = std::string(head, tail);
-  HttpRequest::HttpMethode methode = httpReq->stringToHttpMethode(std::string(head, tail));
-  if( methode == HttpRequest::HttpMethode::UNKNOWN )
+  HttpRequest::HttpMethode methode =
+      httpReq->stringToHttpMethode(std::string(head, tail));
+  if (methode == HttpRequest::HttpMethode::UNKNOWN)
     return false;
   httpReq->httpMethode = methode;
 
@@ -59,67 +61,73 @@ bool HttpParser::parseMethodePathVersion(HttpRequest *httpReq) {
   httpReq->httpVersion = std::string(head, tail);
 
   // To skip \r\n
-  httpReq->httpRequestBlob = tail + 2;
+  httpReq->httpMessage = tail + 2;
 
-  //std::cout << "Path: " << httpReq->httpUri << std::endl;
-  //std::cout << "METHODE: " << httpReq->httpMethodeToString(httpReq->httpMethode) << std::endl;
   return true;
 }
 
+//----------------------------------------------------------------------------
 bool HttpParser::parseRequest(HttpRequest *httpReq,
-                              std::map<std::string, std::string>& headers) {
+                              std::map<std::string, std::string> &headers) {
 
-  char *begin, *end = httpReq->httpRequestBlob;
+  char *begin, *end = httpReq->httpMessage;
 
   parseMethodePathVersion(httpReq);
-  //for (size_t i = 0; i < NUM_HTTP_HEADERS; ++i) {
-    //// *(httpMessageBlob++) |= 32 is a way to make everything lowercase
-    //for (begin = httpReq->httpRequestBlob;
-         //(*httpReq->httpRequestBlob != ':') &&
-         //(*(unsigned char *)httpReq->httpRequestBlob) > 32;
-         //*(httpReq->httpRequestBlob++) |= 32)
-      //;
-    //std::string key{std::string(begin, (size_t)(httpReq->httpRequestBlob - begin) )};
-    ////headers->key =
-        ////std::string_view(begin, (size_t)(httpReq->httpRequestBlob - begin));
+  for (size_t i = 0; i < NUM_HTTP_HEADERS; ++i) {
+    // *(httpMessageBlob++) |= 32 is a way to make everything lowercase
+    for (begin = httpReq->httpMessage;
+         (*httpReq->httpMessage != ':') &&
+         (*(unsigned char *)httpReq->httpMessage) > 32;
+         *(httpReq->httpMessage++) |= 32)
+      ;
+    std::string key{
+        std::string(begin, (size_t)(httpReq->httpMessage - begin))};
+    // headers->key =
+    // std::string_view(begin, (size_t)(httpReq->httpRequestBlob - begin));
 
-    //// Checking if space is after :
-    //if (httpReq->httpRequestBlob[0] == ':' &&
-        //httpReq->httpRequestBlob[1] == ' ') {
-      //httpReq->httpRequestBlob += 2;
-    //} else {
-      //std::cout << "Headers are not correctly formated!" << std::endl;
-      //break;
-    //}
+    // Checking if space is after :
+    if (httpReq->httpMessage[0] == ':' &&
+        httpReq->httpMessage[1] == ' ') {
+      httpReq->httpMessage += 2;
+    } else {
+      std::cout << "Headers are not correctly formated!" << std::endl;
+      break;
+    }
 
-    //begin = httpReq->httpRequestBlob;
+    begin = httpReq->httpMessage;
 
-    //while (*httpReq->httpRequestBlob != '\r')
-      //++httpReq->httpRequestBlob;
-    //end = httpReq->httpRequestBlob;
-  //retry:
-    //if (*end == '\r') {
-      //if (*(end + 1) == '\n') {
-        //end += 1;
-        //++httpReq->httpRequestBlob;
-        //if (*(end + 1) == '\0') {
-          //std::cout << "FINISHED PARSING!!!!" << std::endl;
-          //break;
-        //}
-        //++end;
-        //goto retry;
-      //}
-    //}
+    while (*httpReq->httpMessage != '\r')
+      ++httpReq->httpMessage;
+    end = httpReq->httpMessage;
 
-    //headers[key] = std::string{begin, (size_t)(httpReq->httpRequestBlob - begin)};
-    ////headers->value =
-        ////std::string_view(begin, (size_t)(httpReq->httpRequestBlob - begin));
-    //httpReq->httpRequestBlob += 1;
+    bool found{false};
+  retry:
+    if (*end == '\r') {
+      if (*(end + 1) == '\n') {
+        end += 1;
+        ++httpReq->httpMessage;
+        if (*(end + 1) == '\r' || found) {
+          if (found) {
+            std::cout << "FINISHED PARSING SUCCESSFULLY!" << std::endl;
+            //for(auto& [key, val] : headers) {
+              //std::cout << key << " : " << val << std::endl;
+            //}
+            break;
+          }
+          found = true;
+        }
+        ++end;
+        goto retry;
+      }
+    }
 
-    //std::cout << "KEY  : " << key << std::endl;
-    //std::cout << "Value: " << headers[key] << std::endl;
-    //std::cout << "----------------" << std::endl;
-  //}
+    headers[key] =
+        std::string{begin, (size_t)(httpReq->httpMessage - begin)};
+    // headers->value =
+    // std::string_view(begin, (size_t)(httpReq->httpRequestBlob - begin));
+    httpReq->httpMessage += 1;
+
+  }
 
   return false;
 }

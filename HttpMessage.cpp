@@ -9,4 +9,6 @@
 #include "HttpMessage.h"
 #include "HttpParser.h"
 
-HttpMessage::HttpMessage(char *msg) : httpRequestBlob{msg} {}
+HttpMessage::HttpMessage(char *msg) : httpMessage{msg} {
+  httpVersion = "HTTP/1.1";
+}
