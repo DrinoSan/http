@@ -23,10 +23,11 @@
 #include "HttpResponse.h"
 
 // Defining of some values
-#define BACK_LOG 10
+#define BACK_LOG 100
 
 class simpleHttpServer {
 private:
+  int setNonBlocking(int sockfd);
 public:
   simpleHttpServer() { std::cout << "Starting Server" << std::endl; }
   ~simpleHttpServer() = default;

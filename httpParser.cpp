@@ -22,6 +22,14 @@
 //"Connection: keep-alive\r\n\r\n";
 //
 
+// GET /sand HTTP/1.1
+// Host: 127.0.0.1:8000
+// Upgrade-Insecure-Requests: 1
+// Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*[>;q=0.8
+// User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)
+// AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Safari/605.1.15
+// Accept-Language: en-GB,e__objc_imageinfo
+
 //----------------------------------------------------------------------------
 bool HttpParser::parseMethodePathVersion(HttpRequest *httpReq) {
 
@@ -71,34 +79,46 @@ bool HttpParser::parseRequest(HttpRequest *httpReq,
                               std::map<std::string, std::string> &headers) {
 
   char *begin, *end = httpReq->httpMessage;
+  std::cout << "FULL BUFFER: " << std::endl;
+  std::cout << httpReq->httpMessage << std::endl;
+  std::cout << "OOOOOOOOOOOOOOOOOOOOOOOOOOOO: " << std::endl;
+
 
   parseMethodePathVersion(httpReq);
   for (size_t i = 0; i < NUM_HTTP_HEADERS; ++i) {
     // *(httpMessageBlob++) |= 32 is a way to make everything lowercase
     for (begin = httpReq->httpMessage;
          (*httpReq->httpMessage != ':') &&
-         (*(unsigned char *)httpReq->httpMessage) > 32;
-         *(httpReq->httpMessage++) |= 32)
-      ;
-    std::string key{
-        std::string(begin, (size_t)(httpReq->httpMessage - begin))};
+         (*(unsigned char *)httpReq->httpMessage) > 32;) {
+      if( *(httpReq->httpMessage) == '_') {
+        httpReq->httpMessage++;
+        continue;
+      }
+      *(httpReq->httpMessage++) |= 32;
+    }
+    std::string key{std::string(begin, (size_t)(httpReq->httpMessage - begin))};
     // headers->key =
     // std::string_view(begin, (size_t)(httpReq->httpRequestBlob - begin));
 
     // Checking if space is after :
-    if (httpReq->httpMessage[0] == ':' &&
-        httpReq->httpMessage[1] == ' ') {
+    if (httpReq->httpMessage[0] == ':' && httpReq->httpMessage[1] == ' ') {
       httpReq->httpMessage += 2;
     } else {
       std::cout << "Headers are not correctly formated!" << std::endl;
       break;
     }
 
+    std::cout << ":::::::::::::::::::::::::::::::::::" << std::endl;
     begin = httpReq->httpMessage;
 
-    while (*httpReq->httpMessage != '\r')
+    std::cout << "KEY: " << key << std::endl;
+    while (*httpReq->httpMessage != '\r') {
+      //std::cout << *httpReq->httpMessage;
       ++httpReq->httpMessage;
+    }
+    std::cout << "\nEMINA" << std::endl;
     end = httpReq->httpMessage;
+    std::cout << "-----------------------------------" << std::endl;
 
     bool found{false};
   retry:
@@ -109,8 +129,8 @@ bool HttpParser::parseRequest(HttpRequest *httpReq,
         if (*(end + 1) == '\r' || found) {
           if (found) {
             std::cout << "FINISHED PARSING SUCCESSFULLY!" << std::endl;
-            //for(auto& [key, val] : headers) {
-              //std::cout << key << " : " << val << std::endl;
+            // for(auto& [key, val] : headers) {
+            // std::cout << key << " : " << val << std::endl;
             //}
             break;
           }
@@ -121,12 +141,10 @@ bool HttpParser::parseRequest(HttpRequest *httpReq,
       }
     }
 
-    headers[key] =
-        std::string{begin, (size_t)(httpReq->httpMessage - begin)};
+    headers[key] = std::string{begin, (size_t)(httpReq->httpMessage - begin)};
     // headers->value =
     // std::string_view(begin, (size_t)(httpReq->httpRequestBlob - begin));
     httpReq->httpMessage += 1;
-
   }
 
   return false;
