@@ -14,7 +14,7 @@
 
 class HttpParser {
 private:
-  bool parseMethodePathVersion(HttpRequest *httpReq);
+  char*  parseMethodePathVersion(HttpRequest *httpReq);
 
 public:
   bool parseRequest(HttpRequest *httpReq, std::map<std::string, std::string>& headers);

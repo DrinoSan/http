@@ -42,4 +42,5 @@ HttpRequest::HttpMethode HttpRequest::stringToHttpMethode(std::string methode) {
 }
 
 // Constructor
-HttpRequest::HttpRequest(char *msg) : HttpMessage{msg} {}
+HttpRequest::HttpRequest(char *msg) : HttpMessage{msg} {
+}

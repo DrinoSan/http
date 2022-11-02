@@ -37,7 +37,7 @@ public:
   void registerRequestHandler(std::string uri, HttpRequest::HttpMethode methode,
                               HttpRequestHandler_t callback);
 
-  bool startServer(char buffer[], std::string ipAddr = "", int64_t port = 8000);
+  bool startServer(std::string ipAddr = "", int64_t port = 8000);
 
 private:
   HttpParser httpParser;

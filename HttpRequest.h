@@ -11,6 +11,8 @@
 // Project Headers
 #include "HttpMessage.h"
 
+#define BUFFER_SIZE 20000
+
 class HttpRequest : public HttpMessage {
 public:
   enum class HttpMethode {
@@ -33,6 +35,7 @@ public:
 public:
   HttpMethode httpMethode;
   std::string httpUri;
+  char buffer[BUFFER_SIZE];
 };
 
 #endif // SIMPLEHTTPSERVER2_HTTPREQUEST_H

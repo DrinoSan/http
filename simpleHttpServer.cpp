@@ -50,7 +50,7 @@ int simpleHttpServer::setNonBlocking(int sockfd) {
 }
 
 //----------------------------------------------------------------------------
-bool simpleHttpServer::startServer(char buffer[], std::string ipAddr,
+bool simpleHttpServer::startServer(std::string ipAddr,
                                    int64_t port) {
   // Create a socket (IPv4, TCP)
   int sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -140,12 +140,13 @@ bool simpleHttpServer::startServer(char buffer[], std::string ipAddr,
         inet_ntop(AF_INET, &(client_addr.sin_addr), s, INET_ADDRSTRLEN);
         std::cout << "Got Connection from: " << s << std::endl;
 
-        auto bytesRead = recv(socket_connection_fd, buffer, 300, 0);
-        std::cout << "SAND RECV: " << buffer << std::endl;
+        HttpRequest httpRequest;
+        memset(httpRequest.buffer, '\0', BUFFER_SIZE);
+        auto bytesRead = recv(socket_connection_fd, httpRequest.buffer, BUFFER_SIZE, 0);
+        std::cout << "SAND RECV: " << httpRequest.buffer << std::endl;
         std::cout << "----------------------------------" << std::endl;
-        HttpRequest httpRequest{buffer};
-        httpParser.parseRequest(&httpRequest, httpRequest.headers);
-
+        if(bytesRead > 5)
+          httpParser.parseRequest(&httpRequest, httpRequest.headers);
 
         auto it_uri = requestHandler.find(httpRequest.httpUri);
         if (it_uri == requestHandler.end()) {

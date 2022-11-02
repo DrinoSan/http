@@ -12,7 +12,6 @@ int main() {
 
   simpleHttpServer server;
 
-  char buffer[10000];
 
   // Creating callback function
   auto helloWorld = [](const HttpRequest &request) -> HttpResponse {
@@ -50,6 +49,23 @@ int main() {
     return httpResponse;
   };
 
+  // Creating callback function
+  auto dummy = [](const HttpRequest &request) -> HttpResponse {
+    // Creating Response Object with StatusCode OK -> 200
+    HttpResponse httpResponse{HttpResponse::HttpStatusCode::Ok};
+
+    // Setting some headers
+    httpResponse.setHeader("Server", "Sandi");
+    httpResponse.setHeader("Content-Type", "text/html");
+
+    // Preparing answer from server
+    std::string resp_msg = "<h1>DUMMY</h1>";
+
+    // Building Body
+    httpResponse.buildResponseBody(resp_msg);
+
+    return httpResponse;
+  };
 
   // Registering path: /sand for GET with helloWorld callback
   server.registerRequestHandler("/sand", HttpRequest::HttpMethode::GET,
@@ -59,6 +75,9 @@ int main() {
   server.registerRequestHandler("/", HttpRequest::HttpMethode::GET,
                                 home);
 
-  server.startServer(buffer, "127.0.0.1", 8000);
+  server.registerRequestHandler("/dummy", HttpRequest::HttpMethode::GET,
+                                dummy);
+
+  server.startServer("127.0.0.1", 8000);
   return 0;
 }
