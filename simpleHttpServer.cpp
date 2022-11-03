@@ -26,6 +26,11 @@ void *get_in_addr(struct sockaddr *sa) {
 }
 
 //----------------------------------------------------------------------------
+SimpleHttpServer_t::SimpleHttpServer_t() {
+  createSocket();
+}
+
+//----------------------------------------------------------------------------
 void SimpleHttpServer_t::registerRequestHandler(
     std::string uri, HttpRequest_t::HttpMethode methode,
     HttpRequestHandler_t callback) {
@@ -52,12 +57,6 @@ int SimpleHttpServer_t::setNonBlocking(int sockfd) {
 
 //----------------------------------------------------------------------------
 bool SimpleHttpServer_t::startServer(std::string ipAddr, int64_t port) {
-  // Create a socket (IPv4, TCP)
-  int sockfd = socket(AF_INET, SOCK_STREAM, 0);
-  if (sockfd == -1) {
-    std::cout << "Failed to create socket. errno: " << errno << std::endl;
-    exit(EXIT_FAILURE);
-  }
 
   sockaddr_in sockaddr;
   sockaddr.sin_family = AF_INET;
@@ -180,6 +179,18 @@ bool SimpleHttpServer_t::startServer(std::string ipAddr, int64_t port) {
   return true;
 }
 
+//----------------------------------------------------------------------------
+void SimpleHttpServer_t::createSocket() {
+  // Create a socket (IPv4, TCP)
+  sockfd = socket(AF_INET, SOCK_STREAM, 0);
+
+  if (sockfd == -1) {
+    std::cout << "Failed to create socket. errno: " << errno << std::endl;
+    exit(EXIT_FAILURE);
+  }
+}
+
+//----------------------------------------------------------------------------
 HttpResponse_t SimpleHttpServer_t::pageNotFound(HttpRequest_t *httpReq) {
   HttpResponse_t httpResponse{HttpResponse_t::HttpStatusCode::NotFound};
 

@@ -15,6 +15,7 @@
 #include <string>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <thread>
 
 // Project Headers
 #include "HttpMessage.h"
@@ -28,9 +29,10 @@
 class SimpleHttpServer_t {
 private:
   int setNonBlocking(int sockfd);
+  void createSocket();
 
 public:
-  SimpleHttpServer_t() { std::cout << "Starting Server" << std::endl; }
+  SimpleHttpServer_t();
   ~SimpleHttpServer_t() = default;
 
   using HttpRequestHandler_t = std::function<HttpResponse_t(const HttpRequest_t &)>;
@@ -46,6 +48,9 @@ private:
   std::map<std::string,
            std::map<HttpRequest_t::HttpMethode, HttpRequestHandler_t>>
       requestHandler;
+
+  int sockfd;
+  std::thread listenerThread;
 
   // Handler for not registerd paths
   HttpResponse_t pageNotFound(HttpRequest_t* httpReq);
