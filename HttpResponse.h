@@ -8,7 +8,7 @@
 #include "HttpMessage.h"
 #include <string>
 
-class HttpResponse : public HttpMessage {
+class HttpResponse_t : public HttpMessage {
 
 public:
   enum class HttpStatusCode {
@@ -41,7 +41,7 @@ public:
     HttpVersionNotSupported = 505,
   };
 
-  HttpResponse(HttpStatusCode code);
+  HttpResponse_t(HttpStatusCode code);
   HttpStatusCode statusCode;
   void setHeader(const std::string &key, const std::string &value);
   std::string httpStatusCodeToString(HttpStatusCode code);

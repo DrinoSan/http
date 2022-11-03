@@ -10,13 +10,12 @@
 
 int main() {
 
-  simpleHttpServer server;
-
+  SimpleHttpServer_t server;
 
   // Creating callback function
-  auto helloWorld = [](const HttpRequest &request) -> HttpResponse {
+  auto helloWorld = [](const HttpRequest_t &request) -> HttpResponse_t {
     // Creating Response Object with StatusCode OK -> 200
-    HttpResponse httpResponse{HttpResponse::HttpStatusCode::Ok};
+    HttpResponse_t httpResponse{HttpResponse_t::HttpStatusCode::Ok};
 
     // Setting some headers
     httpResponse.setHeader("Server", "Sandi");
@@ -32,9 +31,9 @@ int main() {
   };
 
   // Creating callback function
-  auto home = [](const HttpRequest &request) -> HttpResponse {
+  auto home = [](const HttpRequest_t &request) -> HttpResponse_t {
     // Creating Response Object with StatusCode OK -> 200
-    HttpResponse httpResponse{HttpResponse::HttpStatusCode::Ok};
+    HttpResponse_t httpResponse{HttpResponse_t::HttpStatusCode::Ok};
 
     // Setting some headers
     httpResponse.setHeader("Server", "Sandi");
@@ -50,9 +49,9 @@ int main() {
   };
 
   // Creating callback function
-  auto dummy = [](const HttpRequest &request) -> HttpResponse {
+  auto dummy = [](const HttpRequest_t &request) -> HttpResponse_t {
     // Creating Response Object with StatusCode OK -> 200
-    HttpResponse httpResponse{HttpResponse::HttpStatusCode::Ok};
+    HttpResponse_t httpResponse{HttpResponse_t::HttpStatusCode::Ok};
 
     // Setting some headers
     httpResponse.setHeader("Server", "Sandi");
@@ -68,15 +67,13 @@ int main() {
   };
 
   // Registering path: /sand for GET with helloWorld callback
-  server.registerRequestHandler("/sand", HttpRequest::HttpMethode::GET,
+  server.registerRequestHandler("/sand", HttpRequest_t::HttpMethode::GET,
                                 helloWorld);
 
   // Registering path: / for GET with home callback
-  server.registerRequestHandler("/", HttpRequest::HttpMethode::GET,
-                                home);
+  server.registerRequestHandler("/", HttpRequest_t::HttpMethode::GET, home);
 
-  server.registerRequestHandler("/dummy", HttpRequest::HttpMethode::GET,
-                                dummy);
+  server.registerRequestHandler("/dummy", HttpRequest_t::HttpMethode::GET, dummy);
 
   server.startServer("127.0.0.1", 8000);
   return 0;

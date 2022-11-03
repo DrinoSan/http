@@ -13,7 +13,7 @@
 
 #define BUFFER_SIZE 20000
 
-class HttpRequest : public HttpMessage {
+class HttpRequest_t : public HttpMessage {
 public:
   enum class HttpMethode {
     GET,
@@ -25,9 +25,9 @@ public:
   };
 
 public:
-  HttpRequest(char *msg);
-  HttpRequest() = default;
-  ~HttpRequest() = default;
+  HttpRequest_t(char *msg);
+  HttpRequest_t() = default;
+  ~HttpRequest_t() = default;
   char *parseMethodePathVersion(char *msg);
   std::string httpMethodeToString(HttpMethode method);
   HttpMethode stringToHttpMethode(std::string methode);

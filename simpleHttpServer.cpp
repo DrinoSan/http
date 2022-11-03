@@ -4,6 +4,7 @@
 
 #include "SimpleHttpServer.h"
 #include "HttpRequest.h"
+#include "HttpResponse.h"
 #include <cstdlib>
 #include <cstring>
 #include <fcntl.h>
@@ -25,15 +26,15 @@ void *get_in_addr(struct sockaddr *sa) {
 }
 
 //----------------------------------------------------------------------------
-void simpleHttpServer::registerRequestHandler(std::string uri,
-                                              HttpRequest::HttpMethode methode,
-                                              HttpRequestHandler_t callback) {
+void SimpleHttpServer_t::registerRequestHandler(
+    std::string uri, HttpRequest_t::HttpMethode methode,
+    HttpRequestHandler_t callback) {
 
   requestHandler[uri].insert(std::make_pair(methode, callback));
 }
 
 //----------------------------------------------------------------------------
-int simpleHttpServer::setNonBlocking(int sockfd) {
+int SimpleHttpServer_t::setNonBlocking(int sockfd) {
   int flags, s;
   flags = fcntl(sockfd, F_GETFL, 0);
   if (flags == -1) {
@@ -50,8 +51,7 @@ int simpleHttpServer::setNonBlocking(int sockfd) {
 }
 
 //----------------------------------------------------------------------------
-bool simpleHttpServer::startServer(std::string ipAddr,
-                                   int64_t port) {
+bool SimpleHttpServer_t::startServer(std::string ipAddr, int64_t port) {
   // Create a socket (IPv4, TCP)
   int sockfd = socket(AF_INET, SOCK_STREAM, 0);
   if (sockfd == -1) {
@@ -86,7 +86,8 @@ bool simpleHttpServer::startServer(std::string ipAddr,
   std::cout << "Server waiting for connections...\n";
 
   int kq, new_events, socket_connection_fd, client_len;
-  struct kevent change_event[40], event[40];
+  struct kevent change_event[40];
+  struct kevent event[40];
   struct sockaddr_in serv_addr, client_addr;
   client_len = sizeof(client_addr);
   kq = kqueue();
@@ -104,7 +105,7 @@ bool simpleHttpServer::startServer(std::string ipAddr,
       exit(EXIT_FAILURE);
     }
 
-    for (int i = 0; new_events > i; i++) {
+    for (int i = 0; i < new_events; i++) {
       int event_fd = event[i].ident;
 
       // When the client disconnects an EOF is sent. By closing the file
@@ -140,17 +141,25 @@ bool simpleHttpServer::startServer(std::string ipAddr,
         inet_ntop(AF_INET, &(client_addr.sin_addr), s, INET_ADDRSTRLEN);
         std::cout << "Got Connection from: " << s << std::endl;
 
-        HttpRequest httpRequest;
+        HttpRequest_t httpRequest;
         memset(httpRequest.buffer, '\0', BUFFER_SIZE);
-        auto bytesRead = recv(socket_connection_fd, httpRequest.buffer, BUFFER_SIZE, 0);
+        auto bytesRead =
+            recv(socket_connection_fd, httpRequest.buffer, BUFFER_SIZE, 0);
         std::cout << "SAND RECV: " << httpRequest.buffer << std::endl;
         std::cout << "----------------------------------" << std::endl;
-        if(bytesRead > 5)
+        if (bytesRead > 5)
           httpParser.parseRequest(&httpRequest, httpRequest.headers);
+        else
+          continue;
 
         auto it_uri = requestHandler.find(httpRequest.httpUri);
         if (it_uri == requestHandler.end()) {
           std::cout << "Path not registerd" << std::endl;
+          HttpResponse_t httpResponse = pageNotFound(&httpRequest);
+          send(socket_connection_fd, httpResponse.httpMessage,
+               httpResponse.httpMessageLength, 0);
+          close(event_fd);
+          close(socket_connection_fd);
           continue;
         }
         auto it_methode = it_uri->second.find(httpRequest.httpMethode);
@@ -169,4 +178,20 @@ bool simpleHttpServer::startServer(std::string ipAddr,
 
   close(sockfd);
   return true;
+}
+
+HttpResponse_t SimpleHttpServer_t::pageNotFound(HttpRequest_t *httpReq) {
+  HttpResponse_t httpResponse{HttpResponse_t::HttpStatusCode::NotFound};
+
+  // Setting some headers
+  httpResponse.setHeader("Server", "Sandi");
+  httpResponse.setHeader("Content-Type", "text/html");
+
+  // Preparing answer from server
+  std::string resp_msg = "<h1>404 Page Not found</h1>";
+
+  // Building Body
+  httpResponse.buildResponseBody(resp_msg);
+
+  return httpResponse;
 }

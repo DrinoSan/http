@@ -25,26 +25,30 @@
 // Defining of some values
 #define BACK_LOG 100
 
-class simpleHttpServer {
+class SimpleHttpServer_t {
 private:
   int setNonBlocking(int sockfd);
+
 public:
-  simpleHttpServer() { std::cout << "Starting Server" << std::endl; }
-  ~simpleHttpServer() = default;
+  SimpleHttpServer_t() { std::cout << "Starting Server" << std::endl; }
+  ~SimpleHttpServer_t() = default;
 
-  using HttpRequestHandler_t = std::function<HttpResponse(const HttpRequest &)>;
+  using HttpRequestHandler_t = std::function<HttpResponse_t(const HttpRequest_t &)>;
 
-  void registerRequestHandler(std::string uri, HttpRequest::HttpMethode methode,
+  void registerRequestHandler(std::string uri, HttpRequest_t::HttpMethode methode,
                               HttpRequestHandler_t callback);
 
   bool startServer(std::string ipAddr = "", int64_t port = 8000);
 
 private:
-  HttpParser httpParser;
+  HttpParser_t httpParser;
   std::map<std::string, std::string> http_request;
   std::map<std::string,
-           std::map<HttpRequest::HttpMethode, HttpRequestHandler_t>>
+           std::map<HttpRequest_t::HttpMethode, HttpRequestHandler_t>>
       requestHandler;
+
+  // Handler for not registerd paths
+  HttpResponse_t pageNotFound(HttpRequest_t* httpReq);
 };
 
 #endif // SIMPLEHTTPSERVER2_SIMPLEHTTPSERVER_H

@@ -31,7 +31,7 @@
 // Accept-Language: en-GB,e__objc_imageinfo
 
 //----------------------------------------------------------------------------
-char *HttpParser::parseMethodePathVersion(HttpRequest *httpReq) {
+char *HttpParser_t::parseMethodePathVersion(HttpRequest_t *httpReq) {
 
   char *begin, *colon, *end, *buffer = httpReq->buffer;
   char *buf = httpReq->buffer;
@@ -45,9 +45,9 @@ char *HttpParser::parseMethodePathVersion(HttpRequest *httpReq) {
   while (tail != msg_end && *tail != ' ')
     ++tail;
   // httpHeaders["Type"] = std::string(head, tail);
-  HttpRequest::HttpMethode methode =
+  HttpRequest_t::HttpMethode methode =
       httpReq->stringToHttpMethode(std::string(head, tail));
-  if (methode == HttpRequest::HttpMethode::UNKNOWN)
+  if (methode == HttpRequest_t::HttpMethode::UNKNOWN)
     return nullptr;
   httpReq->httpMethode = methode;
 
@@ -75,7 +75,7 @@ char *HttpParser::parseMethodePathVersion(HttpRequest *httpReq) {
 }
 
 //----------------------------------------------------------------------------
-bool HttpParser::parseRequest(HttpRequest *httpReq,
+bool HttpParser_t::parseRequest(HttpRequest_t *httpReq,
                               std::map<std::string, std::string> &headers) {
   std::cout << "BEFORE PARSING: " << httpReq->buffer << std::endl;
   char *begin, *end, *buffer = parseMethodePathVersion(httpReq);

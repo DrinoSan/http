@@ -2,22 +2,19 @@
 // Created by becirbeg on 22.10.2022.
 //
 
-#include <iostream>
-
-#include "HttpParser.h"
 #include "HttpRequest.h"
 
-std::string HttpRequest::httpMethodeToString(HttpRequest::HttpMethode methode) {
+std::string HttpRequest_t::httpMethodeToString(HttpRequest_t::HttpMethode methode) {
   switch (methode) {
-  case HttpRequest::HttpMethode::GET:
+  case HttpRequest_t::HttpMethode::GET:
     return "GET";
-  case HttpRequest::HttpMethode::POST:
+  case HttpRequest_t::HttpMethode::POST:
     return "POST";
-  case HttpRequest::HttpMethode::DELETE:
+  case HttpRequest_t::HttpMethode::DELETE:
     return "DELETE";
-  case HttpRequest::HttpMethode::UPDATE:
+  case HttpRequest_t::HttpMethode::UPDATE:
     return "UPDATE";
-  case HttpRequest::HttpMethode::PUT:
+  case HttpRequest_t::HttpMethode::PUT:
     return "PUT";
   default:
     return "UNKNOWN METHODE TYPE ERROR";
@@ -26,21 +23,21 @@ std::string HttpRequest::httpMethodeToString(HttpRequest::HttpMethode methode) {
   return "Unknown Methode Type!";
 }
 
-HttpRequest::HttpMethode HttpRequest::stringToHttpMethode(std::string methode) {
+HttpRequest_t::HttpMethode HttpRequest_t::stringToHttpMethode(std::string methode) {
   if (methode == "GET")
-    return HttpRequest::HttpMethode::GET;
+    return HttpRequest_t::HttpMethode::GET;
   else if (methode == "POST")
-    return HttpRequest::HttpMethode::POST;
+    return HttpRequest_t::HttpMethode::POST;
   else if (methode == "DELETE")
-    return HttpRequest::HttpMethode::DELETE;
+    return HttpRequest_t::HttpMethode::DELETE;
   else if (methode == "UPDATE")
-    return HttpRequest::HttpMethode::UPDATE;
+    return HttpRequest_t::HttpMethode::UPDATE;
   else if (methode == "PUT")
-    return HttpRequest::HttpMethode::PUT;
+    return HttpRequest_t::HttpMethode::PUT;
   else
-    return HttpRequest::HttpMethode::UNKNOWN;
+    return HttpRequest_t::HttpMethode::UNKNOWN;
 }
 
 // Constructor
-HttpRequest::HttpRequest(char *msg) : HttpMessage{msg} {
+HttpRequest_t::HttpRequest_t(char *msg) : HttpMessage{msg} {
 }
