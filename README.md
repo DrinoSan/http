@@ -1,5 +1,9 @@
 # http
 
+# Optimize Server with Threads
+- Adding Seperate thread for listen and for event handling
+- Splitting start server into multple functions
+
 # Check how do determine a reasonable buffer size
 
 # Check get_in_addr function
