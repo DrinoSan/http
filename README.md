@@ -2,6 +2,7 @@
 
 # Optimize Server with Threads
 - Adding Seperate thread for listen and for event handling
+  - The listener thread should only listen for incoming connections and add them to the kqueue
 - Splitting start server into multple functions
 
 # Check how do determine a reasonable buffer size
