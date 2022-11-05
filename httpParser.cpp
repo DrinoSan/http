@@ -33,6 +33,7 @@
 //----------------------------------------------------------------------------
 char *HttpParser_t::parseMethodePathVersion(HttpRequest_t *httpReq) {
 
+  std::cout << "Entering parse Methode" << std::endl;
   char *begin, *colon, *end, *buffer = httpReq->buffer;
   char *buf = httpReq->buffer;
   const char *msg_end = "\r";
@@ -71,14 +72,15 @@ char *HttpParser_t::parseMethodePathVersion(HttpRequest_t *httpReq) {
   // To skip \r\n
   buffer = tail + 2;
 
+  std::cout << "Exiting parse Methode" << std::endl;
   return buffer;
 }
 
 //----------------------------------------------------------------------------
 bool HttpParser_t::parseRequest(HttpRequest_t *httpReq,
-                              std::map<std::string, std::string> &headers) {
+                                std::map<std::string, std::string> &headers) {
   char *begin, *end, *buffer = parseMethodePathVersion(httpReq);
-  if( buffer == nullptr ) {
+  if (buffer == nullptr) {
     std::cout << "GOT A NULLPTR. CLIENT ASKS FOR UNKNOWN SHIT" << std::endl;
     return false;
   }
@@ -119,7 +121,7 @@ bool HttpParser_t::parseRequest(HttpRequest_t *httpReq,
         if (*(end + 1) == '\r' || found) {
           if (found) {
             return true;
-            //break;
+            // break;
           }
           found = true;
         }

@@ -25,14 +25,17 @@
 #include "HttpResponse.h"
 
 // Defining of some values
-#define BACK_LOG 500
-
+constexpr int BACK_LOG = 10001;
+constexpr int NUM_WORKERS = 5;
+constexpr int NUM_EVENTS = 10000;
 
 class SimpleHttpServer_t {
 private:
   int setNonBlocking(int sockfd);
   void createSocket();
   void listen_and_accept();
+  void prepare_kqueue_events();
+  void process_worker_events(int worker_idx);
 
 public:
   SimpleHttpServer_t();
@@ -64,9 +67,15 @@ private:
   HttpRequest_t handle_read(struct sockInfos_t *sockInfo);
   void handle_write(struct sockInfos_t *sockInfo, HttpRequest_t httpRequest);
   sockInfos_t listeningSocket;
-  struct kevent change_event[500];
-  struct kevent event[500];
+
+  struct kevent change_event[NUM_EVENTS];
+  struct kevent event[NUM_EVENTS];
+  int working_kqueue_fd[NUM_WORKERS];
+  struct kevent working_events[NUM_WORKERS][NUM_EVENTS];
+  struct kevent working_chevents[NUM_WORKERS][NUM_EVENTS];
+
   std::thread listenerThread;
+  std::thread workerThread[NUM_WORKERS];
   int kq;
 
   // Handler for not registerd paths

@@ -64,13 +64,7 @@ void SimpleHttpServer_t::listen_and_accept() {
 
   sockInfos_t *newSocketConnection;
 
-  // Adding listening socket to kqueue
-  //EV_SET(change_event, listeningSocket.sockfd, EVFILT_READ, EV_ADD | EV_ENABLE,
-         //0, 0, &listeningSocket);
-  //if (kevent(kq, change_event, 1, NULL, 0, NULL) == -1) {
-    //std::cout << "Kevent error" << std::endl;
-    //exit(EXIT_FAILURE);
-  //}
+  int worker_idx{0};
 
   while (true) {
     newSocketConnection->sockfd =
@@ -83,12 +77,16 @@ void SimpleHttpServer_t::listen_and_accept() {
     // Put this new socket connection also as a 'filter' event
     // to watch in kqueue, so we can now watch for events on this
     // new socket.
-    EV_SET(change_event, newSocketConnection->sockfd, EVFILT_READ, EV_ADD, 0, 0,
+    EV_SET(working_chevents[worker_idx], newSocketConnection->sockfd, EVFILT_READ, EV_ADD, 0, 0,
            newSocketConnection);
-    if (kevent(kq, change_event, 1, NULL, 0, NULL) < 0) {
-      std::cout << "kevent error 3" << std::endl;
+    if (kevent(working_kqueue_fd[worker_idx], working_chevents[worker_idx], 1, NULL, 0, NULL) < 0) {
+      std::cout << "kevent error 3: " << errno <<  std::endl;
       exit(EXIT_FAILURE);
     }
+    
+    ++worker_idx;
+
+    if( worker_idx == NUM_WORKERS) worker_idx = 0;
   }
   close(listeningSocket.sockfd);
 }
@@ -131,6 +129,65 @@ void SimpleHttpServer_t::handle_write(SimpleHttpServer_t::sockInfos_t *sockInfo,
 }
 
 //----------------------------------------------------------------------------
+void SimpleHttpServer_t::prepare_kqueue_events() {
+  
+  for(int i = 0; i < NUM_WORKERS; ++i) {
+     if((working_kqueue_fd[i] = kqueue()) < 0) {
+       std::cout << "Could not create worker fd for kqueue" << std::endl;
+       exit(EXIT_FAILURE);
+     }
+  }
+}
+
+//----------------------------------------------------------------------------
+void SimpleHttpServer_t::process_worker_events(int worker_idx) {
+
+  int new_events; //, socket_connection_fd, client_len;
+
+
+  // File descriptor for kqueue
+  int worker_kfd = working_kqueue_fd[worker_idx];
+
+  for (;;) {
+
+    new_events = kevent(worker_kfd, NULL, 0, working_events[worker_idx], 1, NULL);
+
+    if (new_events == -1) {
+      std::cout << "Kevent error 2" << std::endl;
+      exit(EXIT_FAILURE);
+    }
+
+    for (int i = 0; i < new_events; i++) {
+      int event_fd = working_events[worker_idx][i].ident;
+
+      // When the client disconnects an EOF is sent. By closing the file
+      // descriptor the event is automatically removed from the kqueue
+      if (working_events[worker_idx][i].flags & EV_EOF) {
+        std::cout << "Client has disconnected" << std::endl;
+        close(event_fd);
+      }
+      // If the new event's file descriptor is the same as the listening
+      // socket's file descriptor, we are sure that a new client wants
+      // to connect to our socket.
+      else if (event_fd == listeningSocket.sockfd) {
+        continue;
+
+      } else if (working_events[worker_idx][i].filter & EVFILT_READ) {
+        // Read bytes from socket
+        // Converting
+
+        SimpleHttpServer_t::sockInfos_t *sockInfo =
+            reinterpret_cast<SimpleHttpServer_t::sockInfos_t *>(working_events[worker_idx][i].udata);
+
+        HttpRequest_t httpRequest = handle_read(sockInfo);
+        handle_write(sockInfo, httpRequest);
+        close(event_fd);
+      }
+    }
+  }
+}
+
+//----------------------------------------------------------------------------
 bool SimpleHttpServer_t::startServer(std::string ipAddr, int64_t port) {
 
   sockaddr_in sockaddr;
@@ -158,48 +215,23 @@ bool SimpleHttpServer_t::startServer(std::string ipAddr, int64_t port) {
     exit(EXIT_FAILURE);
   }
 
+  // Here we need to setup the kqueue for each worker thread
+  prepare_kqueue_events();
+
   // start listnener thread here for incoming connections
   listenerThread = std::thread(&SimpleHttpServer_t::listen_and_accept, this);
   // We also need to call join afterwards probably in a stopServer methode
 
   std::cout << "Server waiting for connections...\n";
 
-  int new_events; //, socket_connection_fd, client_len;
+  for( int i = 0; i < NUM_WORKERS; ++i) {
+    workerThread[i] = std::thread(&SimpleHttpServer_t::process_worker_events, this, i);
+  }
 
-  for (;;) {
-    new_events = kevent(kq, NULL, 0, event, 1, NULL);
-    if (new_events == -1) {
-      std::cout << "Kevent error 2" << std::endl;
-      exit(EXIT_FAILURE);
-    }
 
-    for (int i = 0; i < new_events; i++) {
-      int event_fd = event[i].ident;
-
-      // When the client disconnects an EOF is sent. By closing the file
-      // descriptor the event is automatically removed from the kqueue
-      if (event[i].flags & EV_EOF) {
-        std::cout << "Client has disconnected" << std::endl;
-        close(event_fd);
-      }
-      // If the new event's file descriptor is the same as the listening
-      // socket's file descriptor, we are sure that a new client wants
-      // to connect to our socket.
-      else if (event_fd == listeningSocket.sockfd) {
-        continue;
-
-      } else if (event[i].filter & EVFILT_READ) {
-        // Read bytes from socket
-        // Converting
-
-        SimpleHttpServer_t::sockInfos_t *sockInfo =
-            reinterpret_cast<SimpleHttpServer_t::sockInfos_t *>(event[i].udata);
-
-        HttpRequest_t httpRequest = handle_read(sockInfo);
-        handle_write(sockInfo, httpRequest);
-        close(event_fd);
-      }
-    }
+  listenerThread.join();
+  for(int i = 0; i < NUM_WORKERS; ++i) {
+    workerThread[i].join();
   }
 
   return true;
