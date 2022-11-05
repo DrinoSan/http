@@ -146,7 +146,7 @@ bool SimpleHttpServer_t::startServer(std::string ipAddr, int64_t port) {
   sockaddr.sin_port = htons(port); // Hton converts number to network byte order
 
   // Setting socket to non blocking
-  setNonBlocking(listeningSocket.sockfd);
+  //setNonBlocking(listeningSocket.sockfd);
 
   if (bind(listeningSocket.sockfd, (struct sockaddr *)&sockaddr,
            sizeof(sockaddr)) < 0) {
