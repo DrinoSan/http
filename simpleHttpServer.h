@@ -25,7 +25,7 @@
 #include "HttpResponse.h"
 
 // Defining of some values
-#define BACK_LOG 100
+#define BACK_LOG 500
 
 
 class SimpleHttpServer_t {
@@ -64,8 +64,8 @@ private:
   HttpRequest_t handle_read(struct sockInfos_t *sockInfo);
   void handle_write(struct sockInfos_t *sockInfo, HttpRequest_t httpRequest);
   sockInfos_t listeningSocket;
-  struct kevent change_event[40];
-  struct kevent event[40];
+  struct kevent change_event[500];
+  struct kevent event[500];
   std::thread listenerThread;
   int kq;
 

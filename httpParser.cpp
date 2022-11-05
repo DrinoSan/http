@@ -77,8 +77,11 @@ char *HttpParser_t::parseMethodePathVersion(HttpRequest_t *httpReq) {
 //----------------------------------------------------------------------------
 bool HttpParser_t::parseRequest(HttpRequest_t *httpReq,
                               std::map<std::string, std::string> &headers) {
-  std::cout << "BEFORE PARSING: " << httpReq->buffer << std::endl;
   char *begin, *end, *buffer = parseMethodePathVersion(httpReq);
+  if( buffer == nullptr ) {
+    std::cout << "GOT A NULLPTR. CLIENT ASKS FOR UNKNOWN SHIT" << std::endl;
+    return false;
+  }
   for (size_t i = 0; i < NUM_HTTP_HEADERS; ++i) {
     // *(httpMessageBlob++) |= 32 is a way to make everything lowercase
     for (begin = buffer; (*buffer != ':') && (*(unsigned char *)buffer) > 32;) {
@@ -115,7 +118,6 @@ bool HttpParser_t::parseRequest(HttpRequest_t *httpReq,
         ++buffer;
         if (*(end + 1) == '\r' || found) {
           if (found) {
-            std::cout << "FINISHED PARSING SUCCESSFULLY!" << std::endl;
             return true;
             //break;
           }

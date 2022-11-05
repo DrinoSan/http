@@ -65,12 +65,12 @@ void SimpleHttpServer_t::listen_and_accept() {
   sockInfos_t *newSocketConnection;
 
   // Adding listening socket to kqueue
-  EV_SET(change_event, listeningSocket.sockfd, EVFILT_READ, EV_ADD | EV_ENABLE,
-         0, 0, &listeningSocket);
-  if (kevent(kq, change_event, 1, NULL, 0, NULL) == -1) {
-    std::cout << "Kevent error" << std::endl;
-    exit(EXIT_FAILURE);
-  }
+  //EV_SET(change_event, listeningSocket.sockfd, EVFILT_READ, EV_ADD | EV_ENABLE,
+         //0, 0, &listeningSocket);
+  //if (kevent(kq, change_event, 1, NULL, 0, NULL) == -1) {
+    //std::cout << "Kevent error" << std::endl;
+    //exit(EXIT_FAILURE);
+  //}
 
   while (true) {
     newSocketConnection->sockfd =
@@ -96,14 +96,12 @@ void SimpleHttpServer_t::listen_and_accept() {
 //----------------------------------------------------------------------------
 HttpRequest_t
 SimpleHttpServer_t::handle_read(SimpleHttpServer_t::sockInfos_t *sockInfo) {
-  std::cout << "In handle read methode!" << std::endl;
 
   HttpRequest_t httpRequest;
   memset(httpRequest.buffer, '\0', BUFFER_SIZE);
 
   auto bytesRead = recv(sockInfo->sockfd, httpRequest.buffer, BUFFER_SIZE, 0);
-  std::cout << "SAND RECV: " << httpRequest.buffer << std::endl;
-  std::cout << "----------------------------------" << std::endl;
+
   httpParser.parseRequest(&httpRequest, httpRequest.headers);
 
   return httpRequest;
@@ -115,11 +113,10 @@ void SimpleHttpServer_t::handle_write(SimpleHttpServer_t::sockInfos_t *sockInfo,
 
   auto it_uri = requestHandler.find(httpRequest.httpUri);
   if (it_uri == requestHandler.end()) {
-    std::cout << "Path not registerd" << std::endl;
+    //std::cout << "Path not registerd" << std::endl;
     HttpResponse_t httpResponse = pageNotFound(&httpRequest);
     send(sockInfo->sockfd, httpResponse.httpMessage,
          httpResponse.httpMessageLength, 0);
-    close(sockInfo->sockfd);
     return;
   }
   auto it_methode = it_uri->second.find(httpRequest.httpMethode);
@@ -189,9 +186,6 @@ bool SimpleHttpServer_t::startServer(std::string ipAddr, int64_t port) {
       // socket's file descriptor, we are sure that a new client wants
       // to connect to our socket.
       else if (event_fd == listeningSocket.sockfd) {
-        std::cout << "GOT A CALL FROM THE LISTENING SOCKET IF I CAN READ THIS "
-                     "I HAVE TO DO MORE RESEARCH HOW TO FIX IT"
-                  << std::endl;
         continue;
 
       } else if (event[i].filter & EVFILT_READ) {
