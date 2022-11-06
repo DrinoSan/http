@@ -14,28 +14,28 @@
 #define BUFFER_SIZE 20000
 
 class HttpRequest_t : public HttpMessage {
-public:
-  enum class HttpMethode {
-    GET,
-    POST,
-    DELETE,
-    PUT,
-    UPDATE,
-    UNKNOWN,
-  };
+  public:
+   enum class HttpMethode {
+      GET,
+      POST,
+      DELETE,
+      PUT,
+      UPDATE,
+      UNKNOWN,
+   };
 
-public:
-  HttpRequest_t(char *msg);
-  HttpRequest_t() = default;
-  ~HttpRequest_t() = default;
-  char *parseMethodePathVersion(char *msg);
-  std::string httpMethodeToString(HttpMethode method);
-  HttpMethode stringToHttpMethode(std::string methode);
+  public:
+   HttpRequest_t(char* msg);
+   HttpRequest_t() = default;
+   ~HttpRequest_t() = default;
+   char* parseMethodePathVersion(char* msg);
+   std::string httpMethodeToString(HttpMethode method);
+   HttpMethode stringToHttpMethode(std::string methode);
 
-public:
-  HttpMethode httpMethode;
-  std::string httpUri;
-  char buffer[BUFFER_SIZE];
+  public:
+   HttpMethode httpMethode;
+   std::string httpUri;
+   char buffer[BUFFER_SIZE];
 };
 
-#endif // SIMPLEHTTPSERVER2_HTTPREQUEST_H
+#endif  // SIMPLEHTTPSERVER2_HTTPREQUEST_H
