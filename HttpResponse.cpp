@@ -8,6 +8,9 @@
 HttpResponse_t::HttpResponse_t(HttpResponse_t::HttpStatusCode code)
     : statusCode{code} {}
 
+HttpResponse_t::HttpResponse_t()
+    : statusCode{HttpResponse_t::HttpStatusCode::Ok} {}
+
 void HttpResponse_t::setHeader(const std::string& key,
                                const std::string& value) {
    headers[key] = std::move(value);

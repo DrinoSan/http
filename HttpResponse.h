@@ -42,6 +42,7 @@ class HttpResponse_t : public HttpMessage {
    };
 
    HttpResponse_t(HttpStatusCode code);
+   HttpResponse_t();
    HttpStatusCode statusCode;
    void setHeader(const std::string& key, const std::string& value);
    std::string httpStatusCodeToString(HttpStatusCode code);

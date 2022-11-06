@@ -25,7 +25,7 @@
 #include "HttpResponse.h"
 
 // Defining of some values
-constexpr int BACK_LOG = 10001;
+constexpr int BACK_LOG = 100000;
 constexpr int NUM_WORKERS = 5;
 constexpr int NUM_EVENTS = 10000;
 
@@ -60,6 +60,8 @@ class SimpleHttpServer_t {
    struct sockInfos_t {
       int sockfd;
       uintptr_t ptrAddress;
+      HttpRequest_t httpReq;
+      HttpResponse_t httpResp;
       std::function<void(struct sockInfos_t* sockInfo)> read_handler;
       std::function<void(struct sockInfos_t* sockinfo)> write_handler;
    };

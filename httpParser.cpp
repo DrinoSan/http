@@ -33,7 +33,6 @@
 //----------------------------------------------------------------------------
 char* HttpParser_t::parseMethodePathVersion(HttpRequest_t* httpReq) {
 
-   std::cout << "Entering parse Methode" << std::endl;
    char *begin, *colon, *end, *buffer = httpReq->buffer;
    char* buf = httpReq->buffer;
    const char* msg_end = "\r";
@@ -72,7 +71,6 @@ char* HttpParser_t::parseMethodePathVersion(HttpRequest_t* httpReq) {
    // To skip \r\n
    buffer = tail + 2;
 
-   std::cout << "Exiting parse Methode" << std::endl;
    return buffer;
 }
 

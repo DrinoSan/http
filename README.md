@@ -1,9 +1,14 @@
 # http
 
+# Fix recv and send function to send whole data safe!
+
 # Optimize Server with Threads
 - Adding Seperate thread for listen and for event handling
   - The listener thread should only listen for incoming connections and add them to the kqueue
+  - Added. The listener thread works in a own thread and adds new connections to the kqueue.
+  - Added. Worker threads have each their own kqueue and operate on this kqueue. The listener thread adds connections to each of the workers kqueues 
 - Splitting start server into multple functions
+  - Done. Start server function has been split in multiple smaller functions
 
 # Check how do determine a reasonable buffer size
 

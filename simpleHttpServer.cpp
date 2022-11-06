@@ -63,16 +63,17 @@ void SimpleHttpServer_t::listen_and_accept() {
    int32_t client_len, socket_connection_fd;
    struct sockaddr_in client_addr;
 
-   sockInfos_t* newSocketConnection;
-
    int worker_idx{0};
 
    while (true) {
+      sockInfos_t* newSocketConnection = new sockInfos_t;
       newSocketConnection->sockfd =
           accept(listeningSocket.sockfd, (struct sockaddr*)&client_addr,
                  (socklen_t*)&client_len);
       if (newSocketConnection->sockfd == -1) {
          std::cout << "Accept socket failed" << std::endl;
+         std::cout << "SockFD: " << newSocketConnection->sockfd << std::endl;
+         continue;
       }
 
       // Put this new socket connection also as a 'filter' event
@@ -102,6 +103,8 @@ HttpRequest_t SimpleHttpServer_t::handle_read(
    memset(httpRequest.buffer, '\0', BUFFER_SIZE);
 
    auto bytesRead = recv(sockInfo->sockfd, httpRequest.buffer, BUFFER_SIZE, 0);
+   if (bytesRead < 5)
+      return httpRequest;
 
    httpParser.parseRequest(&httpRequest, httpRequest.headers);
 
@@ -114,7 +117,6 @@ void SimpleHttpServer_t::handle_write(SimpleHttpServer_t::sockInfos_t* sockInfo,
 
    auto it_uri = requestHandler.find(httpRequest.httpUri);
    if (it_uri == requestHandler.end()) {
-      // std::cout << "Path not registerd" << std::endl;
       HttpResponse_t httpResponse = pageNotFound(&httpRequest);
       send(sockInfo->sockfd, httpResponse.httpMessage,
            httpResponse.httpMessageLength, 0);
@@ -163,30 +165,30 @@ void SimpleHttpServer_t::process_worker_events(int worker_idx) {
       for (int i = 0; i < new_events; i++) {
          int event_fd = working_events[worker_idx][i].ident;
 
+         SimpleHttpServer_t::sockInfos_t* sockInfo =
+             reinterpret_cast<SimpleHttpServer_t::sockInfos_t*>(
+                 working_events[worker_idx][i].udata);
          // When the client disconnects an EOF is sent. By
          // closing the file descriptor the event is
          // automatically removed from the kqueue
          if (working_events[worker_idx][i].flags & EV_EOF) {
             std::cout << "Client has disconnected" << std::endl;
             close(event_fd);
+            delete sockInfo;
          }
          // If the new event's file descriptor is the same as the
          // listening socket's file descriptor, we are sure that
          // a new client wants to connect to our socket.
          else if (event_fd == listeningSocket.sockfd) {
+            std::cout << "THIS CAN NOT HAPPEN" << std::endl;
             continue;
 
          } else if (working_events[worker_idx][i].filter & EVFILT_READ) {
             // Read bytes from socket
             // Converting
 
-            SimpleHttpServer_t::sockInfos_t* sockInfo =
-                reinterpret_cast<SimpleHttpServer_t::sockInfos_t*>(
-                    working_events[worker_idx][i].udata);
-
             HttpRequest_t httpRequest = handle_read(sockInfo);
-            handle_write(sockInfo, httpRequest);
-            close(event_fd);
+            handle_write(sockInfo, std::move(httpRequest));
          }
       }
    }
@@ -206,7 +208,7 @@ bool SimpleHttpServer_t::startServer(std::string ipAddr, int64_t port) {
        htons(port);  // Hton converts number to network byte order
 
    // Setting socket to non blocking
-   // setNonBlocking(listeningSocket.sockfd);
+   //setNonBlocking(listeningSocket.sockfd);
 
    if (bind(listeningSocket.sockfd, (struct sockaddr*)&sockaddr,
             sizeof(sockaddr)) < 0) {
@@ -239,6 +241,8 @@ bool SimpleHttpServer_t::startServer(std::string ipAddr, int64_t port) {
    for (int i = 0; i < NUM_WORKERS; ++i) {
       workerThread[i].join();
    }
+
+   std::cout << "WE ARE FINISHED HERE AND ARE CLOSING THE PROGRAM" << std::endl;
 
    return true;
 }
