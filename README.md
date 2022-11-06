@@ -24,6 +24,7 @@
 
 # TODO:
 - Adding Unit Tests
+- Give the parser some love to handle post and so on
 
 
 
