@@ -73,6 +73,7 @@ void SimpleHttpServer_t::listen_and_accept() {
       if (newSocketConnection->sockfd == -1) {
          std::cout << "Accept socket failed" << std::endl;
          std::cout << "SockFD: " << newSocketConnection->sockfd << std::endl;
+         delete newSocketConnection;
          continue;
       }
 
@@ -174,6 +175,7 @@ void SimpleHttpServer_t::process_worker_events(int worker_idx) {
          if (working_events[worker_idx][i].flags & EV_EOF) {
             std::cout << "Client has disconnected" << std::endl;
             close(event_fd);
+            close(sockInfo->sockfd);
             delete sockInfo;
          }
          // If the new event's file descriptor is the same as the
