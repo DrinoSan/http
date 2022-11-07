@@ -13,6 +13,7 @@
 #include "HttpRequest.h"
 #include "HttpResponse.h"
 
+std::atomic<int> counter{0};
 // get sockaddr, IPv4 or IPv6:
 // This Function is important for the inet_ntop function later on if we use
 // sockaddr_storage
@@ -21,6 +22,7 @@ void* get_in_addr(struct sockaddr* sa) {
    if (sa->sa_family == AF_INET) {
       return &(((struct sockaddr_in*)sa)->sin_addr);
    }
+   std::cout << "hey" << std::endl;
 
    return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
@@ -66,14 +68,15 @@ void SimpleHttpServer_t::listen_and_accept() {
    int worker_idx{0};
 
    while (true) {
-      sockInfos_t* newSocketConnection = new sockInfos_t;
+      auto* newSocketConnection = new sockInfos_t;
+      ++counter;
       newSocketConnection->sockfd =
           accept(listeningSocket.sockfd, (struct sockaddr*)&client_addr,
                  (socklen_t*)&client_len);
       if (newSocketConnection->sockfd == -1) {
          std::cout << "Accept socket failed" << std::endl;
-         std::cout << "SockFD: " << newSocketConnection->sockfd << std::endl;
          delete newSocketConnection;
+         --counter;
          continue;
       }
 
@@ -151,9 +154,9 @@ void SimpleHttpServer_t::process_worker_events(int worker_idx) {
    int new_events;  //, socket_connection_fd, client_len;
 
    // File descriptor for kqueue
-   int worker_kfd = working_kqueue_fd[worker_idx];
+   auto worker_kfd = working_kqueue_fd[worker_idx];
 
-   for (;;) {
+   while (true) {
 
       new_events =
           kevent(worker_kfd, NULL, 0, working_events[worker_idx], 1, NULL);
@@ -174,9 +177,11 @@ void SimpleHttpServer_t::process_worker_events(int worker_idx) {
          // automatically removed from the kqueue
          if (working_events[worker_idx][i].flags & EV_EOF) {
             std::cout << "Client has disconnected" << std::endl;
-            close(event_fd);
-            close(sockInfo->sockfd);
+            while (close(sockInfo->sockfd) == -1) {
+               std::cout << "ERRNO: " << errno << std::endl;
+            }
             delete sockInfo;
+            std::cout << "COUNTER: " << --counter << std::endl;
          }
          // If the new event's file descriptor is the same as the
          // listening socket's file descriptor, we are sure that
@@ -187,11 +192,11 @@ void SimpleHttpServer_t::process_worker_events(int worker_idx) {
 
          } else if (working_events[worker_idx][i].filter & EVFILT_READ) {
             // Read bytes from socket
-            // Converting
-
             HttpRequest_t httpRequest = handle_read(sockInfo);
             handle_write(sockInfo, std::move(httpRequest));
          }
+
+         std::cout << "COUNTER: " << counter << std::endl;
       }
    }
 }

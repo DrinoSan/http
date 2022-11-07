@@ -25,9 +25,10 @@
 #include "HttpResponse.h"
 
 // Defining of some values
-constexpr int BACK_LOG = 100000;
+constexpr int BACK_LOG = 10000;
 constexpr int NUM_WORKERS = 5;
 constexpr int NUM_EVENTS = 10000;
+
 
 class SimpleHttpServer_t {
   private:
