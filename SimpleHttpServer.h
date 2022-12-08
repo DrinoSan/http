@@ -12,6 +12,8 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <cstdlib>
+#include <filesystem>
+#include <fstream>
 #include <functional>
 #include <iostream>
 #include <map>
@@ -24,11 +26,13 @@
 #include "HttpRequest.h"
 #include "HttpResponse.h"
 
+// Namespaces
+namespace fs = std::filesystem;
+
 // Defining of some values
 constexpr int BACK_LOG = 10000;
 constexpr int NUM_WORKERS = 5;
 constexpr int NUM_EVENTS = 10000;
-
 
 class SimpleHttpServer_t {
   private:
@@ -51,6 +55,9 @@ class SimpleHttpServer_t {
 
    bool startServer(std::string ipAddr = "", int64_t port = 8000);
 
+   void serve_static_file(const fs::path& root_dir, const std::string& path,
+                          std::ostream& os);
+                          
   private:
    HttpParser_t httpParser;
    std::map<std::string, std::string> http_request;

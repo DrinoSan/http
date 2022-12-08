@@ -173,6 +173,7 @@ void SimpleHttpServer_t::process_worker_events(int worker_idx) {
          SimpleHttpServer_t::sockInfos_t* sockInfo =
              reinterpret_cast<SimpleHttpServer_t::sockInfos_t*>(
                  working_events[worker_idx][i].udata);
+
          // When the client disconnects an EOF is sent. By
          // closing the file descriptor the event is
          // automatically removed from the kqueue
@@ -184,6 +185,7 @@ void SimpleHttpServer_t::process_worker_events(int worker_idx) {
             delete sockInfo;
             std::cout << "COUNTER: " << --counter << std::endl;
          }
+
          // If the new event's file descriptor is the same as the
          // listening socket's file descriptor, we are sure that
          // a new client wants to connect to our socket.
@@ -282,4 +284,62 @@ HttpResponse_t SimpleHttpServer_t::pageNotFound(HttpRequest_t* httpReq) {
    httpResponse.buildResponseBody(resp_msg);
 
    return httpResponse;
+}
+
+//----------------------------------------------------------------------------
+void serve_static_file(const fs::path& root_dir, const std::string& path,
+                       std::ostream& os) {
+   // Check if the path contains ".." to prevent access to parent directories
+    if (path.find("..") != std::string::npos)
+    {
+        // Return a "Forbidden" response if the path is not safe
+        os << "HTTP/1.1 403 Forbidden\r\n";
+        os << "Content-Length: 0\r\n";
+        os << "\r\n";
+        return;
+    }
+
+    // Append the requested path to the root directory
+    auto file_path = root_dir / path;
+
+    // Check if the file exists
+    if (!fs::exists(file_path))
+    {
+        // Return a "Not Found" response if the file does not exist
+        os << "HTTP/1.1 404 Not Found\r\n";
+        os << "Content-Length: 0\r\n";
+        os << "\r\n";
+        return;
+    }
+
+    // Open the file in read-only mode
+    std::ifstream file{file_path, std::ios::binary};
+
+    // Get the file size
+    auto size = fs::file_size(file_path);
+
+    // Set the Content-Type header based on the file's extension
+    std::string content_type = "text/plain";
+    if (file_path.extension() == ".html")
+    {
+        content_type = "text/html";
+    }
+
+    else if (file_path.extension() == ".css")
+    {
+        content_type = "text/css";
+    }
+    else if (file_path.extension() == ".js")
+    {
+        content_type = "application/javascript";
+    }
+
+    // Send the response headers
+    os << "HTTP/1.1 200 OK\r\n";
+    os << "Content-Type: " << content_type << "\r\n";
+    os << "Content-Length: " << size << "\r\n";
+    os << "\r\n";
+
+    // Send the file contents
+    os << file.rdbuf();
 }
