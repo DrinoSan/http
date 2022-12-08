@@ -69,10 +69,10 @@ void SimpleHttpServer_t::listen_and_accept() {
 
    while (true) {
       auto* newSocketConnection = new sockInfos_t;
-      ++counter;
       newSocketConnection->sockfd =
           accept(listeningSocket.sockfd, (struct sockaddr*)&client_addr,
                  (socklen_t*)&client_len);
+      ++counter;
       if (newSocketConnection->sockfd == -1) {
          std::cout << "Accept socket failed" << std::endl;
          delete newSocketConnection;
@@ -151,7 +151,7 @@ void SimpleHttpServer_t::prepare_kqueue_events() {
 //----------------------------------------------------------------------------
 void SimpleHttpServer_t::process_worker_events(int worker_idx) {
 
-   int new_events;  //, socket_connection_fd, client_len;
+   int64_t new_events;  //, socket_connection_fd, client_len;
 
    // File descriptor for kqueue
    auto worker_kfd = working_kqueue_fd[worker_idx];
@@ -167,6 +167,7 @@ void SimpleHttpServer_t::process_worker_events(int worker_idx) {
       }
 
       for (int i = 0; i < new_events; i++) {
+         std::cout << "new_events: " << new_events << std::endl;
          int event_fd = working_events[worker_idx][i].ident;
 
          SimpleHttpServer_t::sockInfos_t* sockInfo =
@@ -275,6 +276,7 @@ HttpResponse_t SimpleHttpServer_t::pageNotFound(HttpRequest_t* httpReq) {
 
    // Preparing answer from server
    std::string resp_msg = "<h1>404 Page Not found</h1>";
+   resp_msg += "\nRequested: " + httpReq->httpUri + "\n";
 
    // Building Body
    httpResponse.buildResponseBody(resp_msg);

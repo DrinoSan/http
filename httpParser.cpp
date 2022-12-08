@@ -32,58 +32,66 @@
 
 //----------------------------------------------------------------------------
 char* HttpParser_t::parseMethodePathVersion(HttpRequest_t* httpReq) {
+   try {
+      char* buffer = httpReq->buffer;
+      char* buf = httpReq->buffer;
+      const char* msg_end = "\r";
 
-   char *begin, *colon, *end, *buffer = httpReq->buffer;
-   char* buf = httpReq->buffer;
-   const char* msg_end = "\r";
-   const char* new_line = "\n";
+      char* head = buf;
+      char* tail = buf;
 
-   char* head = buf;
-   char* tail = buf;
+      // Find request type
+      while (tail != msg_end && *tail != ' ')
+         ++tail;
+      // httpHeaders["Type"] = std::string(head, tail);
+      HttpRequest_t::HttpMethode methode =
+          httpReq->stringToHttpMethode(std::string(head, tail));
+      if (methode == HttpRequest_t::HttpMethode::UNKNOWN)
+         return nullptr;
+      httpReq->httpMethode = methode;
 
-   // Find request type
-   while (tail != msg_end && *tail != ' ')
-      ++tail;
-   // httpHeaders["Type"] = std::string(head, tail);
-   HttpRequest_t::HttpMethode methode =
-       httpReq->stringToHttpMethode(std::string(head, tail));
-   if (methode == HttpRequest_t::HttpMethode::UNKNOWN)
+      // We need to increment tail because it is currently on the whitspace
+      head = tail++;
+
+      // Find path
+      while (tail != msg_end && *tail != ' ')
+         ++tail;
+      httpReq->httpUri = std::string(++head, tail);
+
+      // Find HTTP version
+      while (tail != msg_end && *tail == ' ')
+         ++tail;
+      head = tail;
+
+      while (tail != msg_end && *tail != '\r')
+         ++tail;
+      httpReq->httpVersion = std::string(head, tail);
+
+      // To skip \r\n
+      buffer = tail + 2;
+
+      return buffer;
+   } catch (...) {
+      std::cout << "Header is definitely not correct" << std::endl;
       return nullptr;
-   httpReq->httpMethode = methode;
-
-   // We need to increment tail because it is currently on the whitspace
-   head = tail++;
-
-   // Find path
-   while (tail != msg_end && *tail != ' ')
-      ++tail;
-   httpReq->httpUri = std::string(++head, tail);
-
-   // Find HTTP version
-   while (tail != msg_end && *tail == ' ')
-      ++tail;
-   head = tail;
-
-   while (tail != msg_end && *tail != '\r')
-      ++tail;
-   httpReq->httpVersion = std::string(head, tail);
-
-   // To skip \r\n
-   buffer = tail + 2;
-
-   return buffer;
+   }
 }
 
 //----------------------------------------------------------------------------
 bool HttpParser_t::parseRequest(HttpRequest_t* httpReq,
                                 std::map<std::string, std::string>& headers) {
-   char *begin, *end, *buffer = parseMethodePathVersion(httpReq);
+   char* begin;
+   char* end;
+   char* buffer = parseMethodePathVersion(httpReq);
+
    if (buffer == nullptr) {
       std::cout << "GOT A NULLPTR. CLIENT ASKS FOR UNKNOWN SHIT" << std::endl;
+      std::cout << "Probably the Header is just wrong!" << std::endl;
       return false;
    }
+
    for (size_t i = 0; i < NUM_HTTP_HEADERS; ++i) {
-      // *(httpMessageBlob++) |= 32 is a way to make everything lowercase
+      // *(buffer++) |= 32 is a way to make everything lowercase
       for (begin = buffer;
            (*buffer != ':') && (*(unsigned char*)buffer) > 32;) {
          if (*(buffer) == '_') {

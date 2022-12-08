@@ -1,3 +1,7 @@
 install
 CMakeFiles
 cmake-build-debug
+.cache
+build
+simpleHttpServer2
+.vscode
