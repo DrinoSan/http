@@ -27,7 +27,7 @@ std::string HttpResponse_t::httpStatusCodeToString(
 }
 
 void HttpResponse_t::buildResponseBody(std::string resMsg) {
-   std::string end{"\r\n"};
+   const std::string end{"\r\n"};
    httpResponseBody = httpVersion + " " + "200" + " " +
                       httpStatusCodeToString(statusCode) + end;
    setHeader("Content-Length", std::to_string(resMsg.size()));

@@ -14,11 +14,14 @@
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <sstream>
 #include <functional>
 #include <iostream>
 #include <map>
 #include <string>
 #include <thread>
+#include <vector>
+
 
 // Project Headers
 #include "HttpMessage.h"
@@ -41,6 +44,7 @@ class SimpleHttpServer_t {
    void listen_and_accept();
    void prepare_kqueue_events();
    void process_worker_events(int worker_idx);
+   std::vector<std::string> split_path(const std::string& path, char delimiter);
 
   public:
    SimpleHttpServer_t();
@@ -56,8 +60,8 @@ class SimpleHttpServer_t {
    bool startServer(std::string ipAddr = "", int64_t port = 8000);
 
    void serve_static_file(const fs::path& root_dir, const std::string& path,
-                          std::ostream& os);
-                          
+                          std::ostringstream& stream, size_t& fileSize);
+
   private:
    HttpParser_t httpParser;
    std::map<std::string, std::string> http_request;

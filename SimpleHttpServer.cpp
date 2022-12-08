@@ -2,7 +2,7 @@
 // Created by becirbeg on 22.10.2022.
 //
 
-#include "SimpleHttpServer.h"
+// System Headers
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
@@ -10,8 +10,11 @@
 #include <cstring>
 #include <thread>
 #include <utility>
+
+// Project Headers
 #include "HttpRequest.h"
 #include "HttpResponse.h"
+#include "SimpleHttpServer.h"
 
 std::atomic<int> counter{0};
 // get sockaddr, IPv4 or IPv6:
@@ -119,17 +122,34 @@ HttpRequest_t SimpleHttpServer_t::handle_read(
 void SimpleHttpServer_t::handle_write(SimpleHttpServer_t::sockInfos_t* sockInfo,
                                       HttpRequest_t httpRequest) {
 
-   auto it_uri = requestHandler.find(httpRequest.httpUri);
+   auto tokens = split_path(httpRequest.httpUri, '/');
+
+   // Debug
+   for (const auto& token : tokens)
+      std::cout << "TOKEN: " << token << std::endl;
+
+   std::string uri{httpRequest.httpUri};
+   if (tokens.size() > 1) {
+      std::cout << "We found a sub url" << std::endl;
+
+      // Index 0 should be the basic path
+      uri = "/" + tokens[0] + "/";
+      httpRequest.resource = tokens[1];
+   }
+
+   auto it_uri = requestHandler.find(uri);
    if (it_uri == requestHandler.end()) {
+      std::cout << "URI: " << uri << std::endl;
+      std::cout << "PLEASE NOOOO" << std::endl;
       HttpResponse_t httpResponse = pageNotFound(&httpRequest);
       send(sockInfo->sockfd, httpResponse.httpMessage,
            httpResponse.httpMessageLength, 0);
       return;
    }
+
    auto it_methode = it_uri->second.find(httpRequest.httpMethode);
    if (it_methode == it_uri->second.end()) {
-      std::cout << "Methode not registed for this path: " << httpRequest.httpUri
-                << std::endl;
+      std::cout << "Methode not registed for this path: " << uri << std::endl;
       return;
    }
    auto resp = it_methode->second;
@@ -270,6 +290,7 @@ void SimpleHttpServer_t::createSocket() {
 
 //----------------------------------------------------------------------------
 HttpResponse_t SimpleHttpServer_t::pageNotFound(HttpRequest_t* httpReq) {
+
    HttpResponse_t httpResponse{HttpResponse_t::HttpStatusCode::NotFound};
 
    // Setting some headers
@@ -287,59 +308,73 @@ HttpResponse_t SimpleHttpServer_t::pageNotFound(HttpRequest_t* httpReq) {
 }
 
 //----------------------------------------------------------------------------
-void serve_static_file(const fs::path& root_dir, const std::string& path,
-                       std::ostream& os) {
+void SimpleHttpServer_t::serve_static_file(const fs::path& root_dir,
+                                           const std::string& path,
+                                           std::ostringstream& stream, size_t& fileSize) {
    // Check if the path contains ".." to prevent access to parent directories
-    if (path.find("..") != std::string::npos)
-    {
-        // Return a "Forbidden" response if the path is not safe
-        os << "HTTP/1.1 403 Forbidden\r\n";
-        os << "Content-Length: 0\r\n";
-        os << "\r\n";
-        return;
-    }
+   if (path.find("..") != std::string::npos) {
+      // Return a "Forbidden" response if the path is not safe
+      stream << "HTTP/1.1 403 Forbidden\r\n";
+      stream << "Content-Length: 0\r\n";
+      stream << "\r\n";
+      return;
+   }
 
-    // Append the requested path to the root directory
-    auto file_path = root_dir / path;
+   // Append the requested path to the root directory
+   auto file_path = root_dir / path;
 
-    // Check if the file exists
-    if (!fs::exists(file_path))
-    {
-        // Return a "Not Found" response if the file does not exist
-        os << "HTTP/1.1 404 Not Found\r\n";
-        os << "Content-Length: 0\r\n";
-        os << "\r\n";
-        return;
-    }
+   // Check if the file exists
+   if (!fs::exists(file_path)) {
+      // Return a "Not Found" response if the file does not exist
+      stream << "HTTP/1.1 404 Not Found\r\n";
+      stream << "Content-Length: 0\r\n";
+      stream << "\r\n";
+      return;
+   }
 
-    // Open the file in read-only mode
-    std::ifstream file{file_path, std::ios::binary};
+   // Open the file in read-only mode
+   std::ifstream file{file_path, std::ios::binary};
 
-    // Get the file size
-    auto size = fs::file_size(file_path);
+   // Get the file size
+   auto size = fs::file_size(file_path);
+   fileSize = size;
 
-    // Set the Content-Type header based on the file's extension
-    std::string content_type = "text/plain";
-    if (file_path.extension() == ".html")
-    {
-        content_type = "text/html";
-    }
+   // Set the Content-Type header based on the file's extension
+   std::string content_type = "text/plain";
+   if (file_path.extension() == ".html") {
+      content_type = "text/html";
+   }
 
-    else if (file_path.extension() == ".css")
-    {
-        content_type = "text/css";
-    }
-    else if (file_path.extension() == ".js")
-    {
-        content_type = "application/javascript";
-    }
+   else if (file_path.extension() == ".css") {
+      content_type = "text/css";
+   } else if (file_path.extension() == ".js") {
+      content_type = "application/javascript";
+   }
 
-    // Send the response headers
-    os << "HTTP/1.1 200 OK\r\n";
-    os << "Content-Type: " << content_type << "\r\n";
-    os << "Content-Length: " << size << "\r\n";
-    os << "\r\n";
+   // Send the response headers
+   stream << "HTTP/1.1 200 OK\r\n";
+   stream << "Content-Length: " << size << "\r\n";
+   stream << "Content-Type: " << content_type << "\r\n";
+   stream << "\r\n";
 
-    // Send the file contents
-    os << file.rdbuf();
+   std::cout << "ContentType: " << content_type << std::endl;
+
+   // Send the file contents
+   stream << file.rdbuf();
+}
+
+//----------------------------------------------------------------------------
+std::vector<std::string> SimpleHttpServer_t::split_path(const std::string& path,
+                                                        char delimiter) {
+   std::string token;
+   std::vector<std::string> tokens;
+   std::istringstream token_stream(path);
+
+   while (std::getline(token_stream, token, delimiter)) {
+      if(token.empty())
+         continue;
+      tokens.push_back(token);
+   }
+
+   return tokens;
 }

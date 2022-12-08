@@ -35,6 +35,7 @@ class HttpRequest_t : public HttpMessage {
   public:
    HttpMethode httpMethode;
    std::string httpUri;
+   std::string resource;
    char buffer[BUFFER_SIZE];
 };
 

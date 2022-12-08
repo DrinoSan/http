@@ -1,4 +1,5 @@
 #include <cstdlib>
+#include <fstream>
 #include <iostream>
 #include <string>
 
@@ -11,6 +12,25 @@
 int main() {
 
    SimpleHttpServer_t server;
+
+   auto serveStatic =
+       [&server](const HttpRequest_t& request) -> HttpResponse_t {
+      HttpResponse_t httpResponse{HttpResponse_t::HttpStatusCode::Ok};
+
+      const auto root_dir = fs::path{"static"};
+
+      std::ostringstream stream;
+      size_t fileSize;
+      server.serve_static_file(root_dir, request.resource, stream, fileSize);
+
+      auto body = stream.str();
+      httpResponse.httpMessage = body.data();
+      httpResponse.httpMessageLength = fileSize;
+
+      std::cout << "BODY: \n" << httpResponse.httpMessage << std::endl;
+
+      return httpResponse;
+   };
 
    // Creating callback function
    auto helloWorld = [](const HttpRequest_t& request) -> HttpResponse_t {
@@ -75,6 +95,9 @@ int main() {
 
    server.registerRequestHandler("/dummy", HttpRequest_t::HttpMethode::GET,
                                  dummy);
+
+   server.registerRequestHandler("/static/", HttpRequest_t::HttpMethode::GET,
+                                 serveStatic);
 
    server.startServer("127.0.0.1", 8000);
    return 0;
