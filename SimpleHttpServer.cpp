@@ -326,6 +326,7 @@ void SimpleHttpServer_t::serve_static_file(const fs::path& root_dir,
    // Check if the file exists
    if (!fs::exists(file_path)) {
       // Return a "Not Found" response if the file does not exist
+      std::cout << "WE FOUND NOTHING for: " << file_path << std::endl;
       stream << "HTTP/1.1 404 Not Found\r\n";
       stream << "Content-Length: 0\r\n";
       stream << "\r\n";

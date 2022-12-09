@@ -3,6 +3,7 @@
 
 # Serving static files
   - Add this
+  - What else
 # Fix recv and send function to send whole data safe!
 
 # Optimize Server with Threads

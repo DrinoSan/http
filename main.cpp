@@ -24,8 +24,14 @@ int main() {
       server.serve_static_file(root_dir, request.resource, stream, fileSize);
 
       auto body = stream.str();
-      httpResponse.httpMessage = body.data();
-      httpResponse.httpMessageLength = fileSize;
+      // httpResponse.httpMessage = body.data();
+      // httpResponse.httpMessageLength = fileSize;
+
+      // httpResponse.buildResponseBody(body);
+      httpResponse.httpMessageLength = body.size();
+      httpResponse.httpResponseBody = body;
+      httpResponse.httpMessage = httpResponse.httpResponseBody.data();
+
 
       std::cout << "BODY: \n" << httpResponse.httpMessage << std::endl;
 
