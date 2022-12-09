@@ -2,8 +2,10 @@
 
 
 # Serving static files
-  - Add this
-  - What else
+  - Added this
+
+# Add remaining http methods -> post,delete,put
+
 # Fix recv and send function to send whole data safe!
 
 # Optimize Server with Threads
