@@ -1,7 +1,0 @@
-# ninja log v5
-6	4238	6881665218398184	CMakeFiles/simpleHttpServer2.dir/main.cpp.obj	e1006969146fa94b
-7888	12882	6881657533823239	simpleHttpServer2.exe	9ceebbdd058d220f
-4	6499	6881656009419406	CMakeFiles/simpleHttpServer2.dir/simpleHttpServer.cpp.obj	c58b91141a81a337
-5	629	6881668449866596	build.ninja	9017f51f71b9eb29
-2	2919	6881668480642002	CMakeFiles/simpleHttpServer2.dir/main.cpp.obj	e1006969146fa94b
-2921	3619	6881668487522237	simpleHttpServer2.exe	36460730ce43ec5e
