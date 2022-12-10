@@ -14,20 +14,23 @@
 
 // Project Header
 
-class HttpMessage {
-  public:
-   HttpMessage(char* msg);
-   HttpMessage() = default;
-   std::map<std::string, std::string> headers;
+class HttpMessage
+{
+public:
+    HttpMessage(char* msg);
 
-  private:
-  public:
-   std::string httpVersion{"HTTP/1.1"};
-   std::string httpBody;
+    HttpMessage() = default;
 
-   char* httpMessage;
-   size_t httpMessageLength;
-   std::string httpResponseBody;
+    std::map<std::string, std::string> headers;
+
+private:
+public:
+    std::string httpVersion{"HTTP/1.1"};
+    std::string httpBody;
+
+    std::string httpMessage;
+    size_t httpMessageLength;
+    std::string httpResponseBody;
 };
 
 #endif  // SIMPLEHTTPSERVER2_HTTPMESSAGE_H

@@ -12,13 +12,14 @@
 #include "HttpMessage.h"
 #include "HttpRequest.h"
 
-class HttpParser_t {
-  private:
-   char* parseMethodePathVersion(HttpRequest_t* httpReq);
+class HttpParser_t
+{
+private:
+    char* parseMethodePathVersion(HttpRequest_t* httpReq);
 
-  public:
-   bool parseRequest(HttpRequest_t* httpReq,
-                     std::map<std::string, std::string>& headers);
+public:
+    bool parseRequest(HttpRequest_t* httpReq,
+                      std::map<std::string, std::string> &headers);
 };
 
 #endif  // SIMPLEHTTPSERVER2_HTTPPARSER_H

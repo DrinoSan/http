@@ -9,6 +9,7 @@
 #include "HttpMessage.h"
 #include "HttpParser.h"
 
-HttpMessage::HttpMessage(char* msg) : httpMessage{msg} {
-   httpVersion = "HTTP/1.1";
+HttpMessage::HttpMessage(char* msg) : httpMessage{msg}
+{
+    httpVersion = "HTTP/1.1";
 }

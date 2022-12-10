@@ -17,365 +17,422 @@
 #include "SimpleHttpServer.h"
 
 std::atomic<int> counter{0};
+
 // get sockaddr, IPv4 or IPv6:
 // This Function is important for the inet_ntop function later on if we use
 // sockaddr_storage
 //----------------------------------------------------------------------------
-void* get_in_addr(struct sockaddr* sa) {
-   if (sa->sa_family == AF_INET) {
-      return &(((struct sockaddr_in*)sa)->sin_addr);
-   }
-   std::cout << "hey" << std::endl;
+void* get_in_addr(struct sockaddr* sa)
+{
+    if (sa->sa_family == AF_INET)
+    {
+        return &(((struct sockaddr_in*) sa)->sin_addr);
+    }
+    std::cout << "hey" << std::endl;
 
-   return &(((struct sockaddr_in6*)sa)->sin6_addr);
+    return &(((struct sockaddr_in6*) sa)->sin6_addr);
 }
 
 //----------------------------------------------------------------------------
-SimpleHttpServer_t::SimpleHttpServer_t() {
-   createSocket();
-   kq = kqueue();
+SimpleHttpServer_t::SimpleHttpServer_t()
+{
+    createSocket();
+    kq = kqueue();
 }
 
 //----------------------------------------------------------------------------
 void SimpleHttpServer_t::registerRequestHandler(
-    std::string uri, HttpRequest_t::HttpMethode methode,
-    HttpRequestHandler_t callback) {
+        std::string uri, HttpRequest_t::HttpMethode methode,
+        HttpRequestHandler_t callback)
+{
 
-   requestHandler[uri].insert(std::make_pair(methode, callback));
+    requestHandler[uri].insert(std::make_pair(methode, callback));
 }
 
 //----------------------------------------------------------------------------
-int SimpleHttpServer_t::setNonBlocking(int sockfd) {
-   int flags, s;
-   flags = fcntl(sockfd, F_GETFL, 0);
-   if (flags == -1) {
-      perror("fcntl");
-      return -1;
-   }
-   flags |= O_NONBLOCK;
-   s = fcntl(sockfd, F_SETFL, flags);
-   if (s == -1) {
-      perror("fcntl");
-      return -1;
-   }
-   return 0;
+int SimpleHttpServer_t::setNonBlocking(int sockfd)
+{
+    int flags, s;
+    flags = fcntl(sockfd, F_GETFL, 0);
+    if (flags == -1)
+    {
+        perror("fcntl");
+        return -1;
+    }
+    flags |= O_NONBLOCK;
+    s = fcntl(sockfd, F_SETFL, flags);
+    if (s == -1)
+    {
+        perror("fcntl");
+        return -1;
+    }
+    return 0;
 }
 
 //----------------------------------------------------------------------------
-void SimpleHttpServer_t::listen_and_accept() {
-   // Setting basic variables needed for accepting new connections from
-   // clients
-   int32_t client_len, socket_connection_fd;
-   struct sockaddr_in client_addr;
+void SimpleHttpServer_t::listen_and_accept()
+{
+    // Setting basic variables needed for accepting new connections from
+    // clients
+    int32_t client_len, socket_connection_fd;
+    struct sockaddr_in client_addr;
 
-   int worker_idx{0};
+    int worker_idx{0};
 
-   while (true) {
-      auto* newSocketConnection = new sockInfos_t;
-      newSocketConnection->sockfd =
-          accept(listeningSocket.sockfd, (struct sockaddr*)&client_addr,
-                 (socklen_t*)&client_len);
-      ++counter;
-      if (newSocketConnection->sockfd == -1) {
-         std::cout << "Accept socket failed" << std::endl;
-         delete newSocketConnection;
-         --counter;
-         continue;
-      }
+    while (true)
+    {
+        auto* newSocketConnection = new sockInfos_t;
+        newSocketConnection->sockfd =
+                accept(listeningSocket.sockfd, (struct sockaddr*) &client_addr,
+                       (socklen_t*) &client_len);
+        ++counter;
+        if (newSocketConnection->sockfd == -1)
+        {
+            std::cout << "Accept socket failed" << std::endl;
+            delete newSocketConnection;
+            --counter;
+            continue;
+        }
 
-      // Put this new socket connection also as a 'filter' event
-      // to watch in kqueue, so we can now watch for events on this
-      // new socket.
-      EV_SET(working_chevents[worker_idx], newSocketConnection->sockfd,
-             EVFILT_READ, EV_ADD, 0, 0, newSocketConnection);
-      if (kevent(working_kqueue_fd[worker_idx], working_chevents[worker_idx], 1,
-                 NULL, 0, NULL) < 0) {
-         std::cout << "kevent error 3: " << errno << std::endl;
-         exit(EXIT_FAILURE);
-      }
+        // Put this new socket connection also as a 'filter' event
+        // to watch in kqueue, so we can now watch for events on this
+        // new socket.
+        EV_SET(working_chevents[worker_idx], newSocketConnection->sockfd,
+               EVFILT_READ, EV_ADD, 0, 0, newSocketConnection);
+        if (kevent(working_kqueue_fd[worker_idx], working_chevents[worker_idx], 1,
+                   NULL, 0, NULL) < 0)
+        {
+            std::cout << "kevent error 3: " << errno << std::endl;
+            exit(EXIT_FAILURE);
+        }
 
-      ++worker_idx;
+        ++worker_idx;
 
-      if (worker_idx == NUM_WORKERS)
-         worker_idx = 0;
-   }
-   close(listeningSocket.sockfd);
+        if (worker_idx == NUM_WORKERS)
+            worker_idx = 0;
+    }
+    close(listeningSocket.sockfd);
 }
 
 //----------------------------------------------------------------------------
 HttpRequest_t SimpleHttpServer_t::handle_read(
-    SimpleHttpServer_t::sockInfos_t* sockInfo) {
+        SimpleHttpServer_t::sockInfos_t* sockInfo)
+{
 
-   HttpRequest_t httpRequest;
-   memset(httpRequest.buffer, '\0', BUFFER_SIZE);
+    HttpRequest_t httpRequest;
+    memset(httpRequest.buffer, '\0', BUFFER_SIZE);
 
-   auto bytesRead = recv(sockInfo->sockfd, httpRequest.buffer, BUFFER_SIZE, 0);
-   if (bytesRead < 5)
-      return httpRequest;
+    auto bytesRead = recv(sockInfo->sockfd, httpRequest.buffer, BUFFER_SIZE, 0);
+    if (bytesRead < 5)
+        return httpRequest;
 
-   httpParser.parseRequest(&httpRequest, httpRequest.headers);
+    httpParser.parseRequest(&httpRequest, httpRequest.headers);
 
-   return httpRequest;
+    return httpRequest;
 }
 
 //----------------------------------------------------------------------------
 void SimpleHttpServer_t::handle_write(SimpleHttpServer_t::sockInfos_t* sockInfo,
-                                      HttpRequest_t httpRequest) {
+                                      HttpRequest_t httpRequest)
+{
 
-   auto tokens = split_path(httpRequest.httpUri, '/');
+    auto tokens = split_path(httpRequest.httpUri, '/');
 
-   // Debug
-   for (const auto& token : tokens)
-      std::cout << "TOKEN: " << token << std::endl;
+    // Debug
+    for (const auto &token: tokens)
+        std::cout << "TOKEN: " << token << std::endl;
 
-   std::string uri{httpRequest.httpUri};
-   if (tokens.size() > 1) {
-      std::cout << "We found a sub url" << std::endl;
+    std::string uri{httpRequest.httpUri};
+    if (tokens.size() > 1)
+    {
+        std::cout << "We found a sub url" << std::endl;
 
-      // Index 0 should be the basic path
-      uri = "/" + tokens[0] + "/";
-      httpRequest.resource = tokens[1];
-   }
+        // Index 0 should be the basic path
+        uri = "/" + tokens[0] + "/";
+        httpRequest.resource = tokens[1];
+    }
 
-   auto it_uri = requestHandler.find(uri);
-   if (it_uri == requestHandler.end()) {
-      std::cout << "URI: " << uri << std::endl;
-      std::cout << "PLEASE NOOOO" << std::endl;
-      HttpResponse_t httpResponse = pageNotFound(&httpRequest);
-      send(sockInfo->sockfd, httpResponse.httpMessage,
-           httpResponse.httpMessageLength, 0);
-      return;
-   }
+    auto it_uri = requestHandler.find(uri);
+    if (it_uri == requestHandler.end())
+    {
+        std::cout << "URI: " << uri << std::endl;
+        HttpResponse_t httpResponse = pageNotFound(&httpRequest);
+        send(sockInfo->sockfd, httpResponse.httpMessage.data(),
+             httpResponse.httpMessageLength, 0);
+        return;
+    }
 
-   auto it_methode = it_uri->second.find(httpRequest.httpMethode);
-   if (it_methode == it_uri->second.end()) {
-      std::cout << "Methode not registed for this path: " << uri << std::endl;
-      return;
-   }
-   auto resp = it_methode->second;
-   auto response = resp(httpRequest);
-   send(sockInfo->sockfd, response.httpMessage, response.httpMessageLength, 0);
+    auto it_methode = it_uri->second.find(httpRequest.httpMethode);
+    if (it_methode == it_uri->second.end())
+    {
+        std::cout << "Methode not registed for this path: " << uri << std::endl;
+        return;
+    }
+    auto resp = it_methode->second;
+    auto response = resp(httpRequest);
+
+    size_t data_sent = 0;
+    while (data_sent < response.httpMessageLength)
+    {
+        size_t chunk_size = response.httpMessageLength - data_sent;
+        // I only want to sent max 1000bytes over the network
+        if (chunk_size > CHUNK_SIZE)
+        {
+            chunk_size = CHUNK_SIZE;
+        }
+
+        auto bytes_sent = send(sockInfo->sockfd, response.httpMessage.data() + data_sent, chunk_size, 0);
+
+        data_sent += bytes_sent;
+    }
 }
 
 //----------------------------------------------------------------------------
-void SimpleHttpServer_t::prepare_kqueue_events() {
+void SimpleHttpServer_t::prepare_kqueue_events()
+{
 
-   for (int i = 0; i < NUM_WORKERS; ++i) {
-      if ((working_kqueue_fd[i] = kqueue()) < 0) {
-         std::cout << "Could not create worker fd for kqueue" << std::endl;
-         exit(EXIT_FAILURE);
-      }
-   }
+    for (int i = 0; i < NUM_WORKERS; ++i)
+    {
+        if ((working_kqueue_fd[i] = kqueue()) < 0)
+        {
+            std::cout << "Could not create worker fd for kqueue" << std::endl;
+            exit(EXIT_FAILURE);
+        }
+    }
 }
 
 //----------------------------------------------------------------------------
-void SimpleHttpServer_t::process_worker_events(int worker_idx) {
+void SimpleHttpServer_t::process_worker_events(int worker_idx)
+{
 
-   int64_t new_events;  //, socket_connection_fd, client_len;
+    int64_t new_events;  //, socket_connection_fd, client_len;
 
-   // File descriptor for kqueue
-   auto worker_kfd = working_kqueue_fd[worker_idx];
+    // File descriptor for kqueue
+    auto worker_kfd = working_kqueue_fd[worker_idx];
 
-   while (true) {
+    while (true)
+    {
 
-      new_events =
-          kevent(worker_kfd, NULL, 0, working_events[worker_idx], 1, NULL);
+        new_events =
+                kevent(worker_kfd, NULL, 0, working_events[worker_idx], 1, NULL);
 
-      if (new_events == -1) {
-         std::cout << "Kevent error 2" << std::endl;
-         exit(EXIT_FAILURE);
-      }
+        if (new_events == -1)
+        {
+            std::cout << "Kevent error 2" << std::endl;
+            exit(EXIT_FAILURE);
+        }
 
-      for (int i = 0; i < new_events; i++) {
-         std::cout << "new_events: " << new_events << std::endl;
-         int event_fd = working_events[worker_idx][i].ident;
+        for (int i = 0; i < new_events; i++)
+        {
+            std::cout << "new_events: " << new_events << std::endl;
+            int event_fd = working_events[worker_idx][i].ident;
 
-         SimpleHttpServer_t::sockInfos_t* sockInfo =
-             reinterpret_cast<SimpleHttpServer_t::sockInfos_t*>(
-                 working_events[worker_idx][i].udata);
+            SimpleHttpServer_t::sockInfos_t* sockInfo =
+                    reinterpret_cast<SimpleHttpServer_t::sockInfos_t*>(
+                            working_events[worker_idx][i].udata);
 
-         // When the client disconnects an EOF is sent. By
-         // closing the file descriptor the event is
-         // automatically removed from the kqueue
-         if (working_events[worker_idx][i].flags & EV_EOF) {
-            std::cout << "Client has disconnected" << std::endl;
-            while (close(sockInfo->sockfd) == -1) {
-               std::cout << "ERRNO: " << errno << std::endl;
+            // When the client disconnects an EOF is sent. By
+            // closing the file descriptor the event is
+            // automatically removed from the kqueue
+            if (working_events[worker_idx][i].flags & EV_EOF)
+            {
+                std::cout << "Client has disconnected" << std::endl;
+                while (close(sockInfo->sockfd) == -1)
+                {
+                    std::cout << "ERRNO: " << errno << std::endl;
+                }
+                delete sockInfo;
+                std::cout << "COUNTER: " << --counter << std::endl;
             }
-            delete sockInfo;
-            std::cout << "COUNTER: " << --counter << std::endl;
-         }
 
-         // If the new event's file descriptor is the same as the
-         // listening socket's file descriptor, we are sure that
-         // a new client wants to connect to our socket.
-         else if (event_fd == listeningSocket.sockfd) {
-            std::cout << "THIS CAN NOT HAPPEN" << std::endl;
+                // If the new event's file descriptor is the same as the
+                // listening socket's file descriptor, we are sure that
+                // a new client wants to connect to our socket.
+            else if (event_fd == listeningSocket.sockfd)
+            {
+                std::cout << "THIS CAN NOT HAPPEN" << std::endl;
+                continue;
+
+            } else if (working_events[worker_idx][i].filter & EVFILT_READ)
+            {
+                // Read bytes from socket
+                HttpRequest_t httpRequest = handle_read(sockInfo);
+                handle_write(sockInfo, std::move(httpRequest));
+            }
+
+            std::cout << "COUNTER: " << counter << std::endl;
+        }
+    }
+}
+
+//----------------------------------------------------------------------------
+bool SimpleHttpServer_t::startServer(std::string ipAddr, int64_t port)
+{
+
+    sockaddr_in sockaddr;
+    sockaddr.sin_family = AF_INET;
+    if (ipAddr != "")
+    {
+        inet_pton(AF_INET, ipAddr.c_str(), &(sockaddr.sin_addr));
+    } else
+    {
+        sockaddr.sin_addr.s_addr = INADDR_ANY;
+    }
+    sockaddr.sin_port =
+            htons(port);  // Hton converts number to network byte order
+
+    // Setting socket to non blocking
+    //setNonBlocking(listeningSocket.sockfd);
+
+    if (bind(listeningSocket.sockfd, (struct sockaddr*) &sockaddr,
+             sizeof(sockaddr)) < 0)
+    {
+        std::cout << "Failed to bind to port " << port << ". errno: " << errno
+                  << std::endl;
+        return false;
+    }
+
+    // Start listening. Hold at most BACKL_LOG connection in the queue
+    if (listen(listeningSocket.sockfd, BACK_LOG) < 0)
+    {
+        std::cout << "Failed to listen on socket. errno: " << errno << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    // Here we need to setup the kqueue for each worker thread
+    prepare_kqueue_events();
+
+    // start listnener thread here for incoming connections
+    listenerThread = std::thread(&SimpleHttpServer_t::listen_and_accept, this);
+    // We also need to call join afterwards probably in a stopServer methode
+
+    std::cout << "Server waiting for connections...\n";
+
+    for (int i = 0; i < NUM_WORKERS; ++i)
+    {
+        workerThread[i] =
+                std::thread(&SimpleHttpServer_t::process_worker_events, this, i);
+    }
+
+    listenerThread.join();
+    for (int i = 0; i < NUM_WORKERS; ++i)
+    {
+        workerThread[i].join();
+    }
+
+    std::cout << "WE ARE FINISHED HERE AND ARE CLOSING THE PROGRAM" << std::endl;
+
+    return true;
+}
+
+//----------------------------------------------------------------------------
+void SimpleHttpServer_t::createSocket()
+{
+    // Create a socket (IPv4, TCP)
+    listeningSocket.sockfd = socket(AF_INET, SOCK_STREAM, 0);
+
+    if (listeningSocket.sockfd == -1)
+    {
+        std::cout << "Failed to create socket. errno: " << errno << std::endl;
+        exit(EXIT_FAILURE);
+    }
+}
+
+//----------------------------------------------------------------------------
+HttpResponse_t SimpleHttpServer_t::pageNotFound(HttpRequest_t* httpReq)
+{
+
+    HttpResponse_t httpResponse{HttpResponse_t::HttpStatusCode::NotFound};
+
+    // Setting some headers
+    httpResponse.setHeader("Server", "Sandi");
+    httpResponse.setHeader("Content-Type", "text/html");
+
+    // Preparing answer from server
+    std::string resp_msg = "<h1>404 Page Not found</h1>";
+    resp_msg += "\nRequested: " + httpReq->httpUri + "\n";
+
+    // Building Body
+    httpResponse.buildResponseBody(resp_msg);
+
+    return httpResponse;
+}
+
+//----------------------------------------------------------------------------
+void SimpleHttpServer_t::serve_static_file(const fs::path &root_dir,
+                                           const std::string &path,
+                                           std::ostringstream &stream, size_t &fileSize)
+{
+    // Check if the path contains ".." to prevent access to parent directories
+    if (path.find("..") != std::string::npos)
+    {
+        // Return a "Forbidden" response if the path is not safe
+        stream << "HTTP/1.1 403 Forbidden\r\n";
+        stream << "Content-Length: 0\r\n";
+        stream << "\r\n";
+        return;
+    }
+
+    // Append the requested path to the root directory
+    auto file_path = root_dir / path;
+
+    // Check if the file exists
+    if (!fs::exists(file_path))
+    {
+        // Return a "Not Found" response if the file does not exist
+        std::cout << "WE FOUND NOTHING for: " << file_path << std::endl;
+        stream << "HTTP/1.1 404 Not Found\r\n";
+        stream << "Content-Length: 0\r\n";
+        stream << "\r\n";
+        return;
+    }
+
+    // Open the file in read-only mode
+    std::ifstream file{file_path, std::ios::binary};
+
+    // Get the file size
+    auto size = fs::file_size(file_path);
+    fileSize = size;
+
+    // Set the Content-Type header based on the file's extension
+    std::string content_type = "text/plain";
+    if (file_path.extension() == ".html")
+    {
+        content_type = "text/html";
+    } else if (file_path.extension() == ".css")
+    {
+        content_type = "text/css";
+    } else if (file_path.extension() == ".js")
+    {
+        content_type = "application/javascript";
+    }
+
+    // Send the response headers
+    stream << "HTTP/1.1 200 OK\r\n";
+    stream << "Content-Length: " << size << "\r\n";
+    stream << "Content-Type: " << content_type << "\r\n";
+    stream << "\r\n";
+
+    std::cout << "ContentType: " << content_type << std::endl;
+
+    // Send the file contents
+    stream << file.rdbuf();
+}
+
+//----------------------------------------------------------------------------
+std::vector<std::string> SimpleHttpServer_t::split_path(const std::string &path,
+                                                        char delimiter)
+{
+    std::string token;
+    std::vector<std::string> tokens;
+    std::istringstream token_stream(path);
+
+    while (std::getline(token_stream, token, delimiter))
+    {
+        if (token.empty())
             continue;
+        tokens.push_back(token);
+    }
 
-         } else if (working_events[worker_idx][i].filter & EVFILT_READ) {
-            // Read bytes from socket
-            HttpRequest_t httpRequest = handle_read(sockInfo);
-            handle_write(sockInfo, std::move(httpRequest));
-         }
-
-         std::cout << "COUNTER: " << counter << std::endl;
-      }
-   }
-}
-
-//----------------------------------------------------------------------------
-bool SimpleHttpServer_t::startServer(std::string ipAddr, int64_t port) {
-
-   sockaddr_in sockaddr;
-   sockaddr.sin_family = AF_INET;
-   if (ipAddr != "") {
-      inet_pton(AF_INET, ipAddr.c_str(), &(sockaddr.sin_addr));
-   } else {
-      sockaddr.sin_addr.s_addr = INADDR_ANY;
-   }
-   sockaddr.sin_port =
-       htons(port);  // Hton converts number to network byte order
-
-   // Setting socket to non blocking
-   //setNonBlocking(listeningSocket.sockfd);
-
-   if (bind(listeningSocket.sockfd, (struct sockaddr*)&sockaddr,
-            sizeof(sockaddr)) < 0) {
-      std::cout << "Failed to bind to port " << port << ". errno: " << errno
-                << std::endl;
-      return false;
-   }
-
-   // Start listening. Hold at most BACKL_LOG connection in the queue
-   if (listen(listeningSocket.sockfd, BACK_LOG) < 0) {
-      std::cout << "Failed to listen on socket. errno: " << errno << std::endl;
-      exit(EXIT_FAILURE);
-   }
-
-   // Here we need to setup the kqueue for each worker thread
-   prepare_kqueue_events();
-
-   // start listnener thread here for incoming connections
-   listenerThread = std::thread(&SimpleHttpServer_t::listen_and_accept, this);
-   // We also need to call join afterwards probably in a stopServer methode
-
-   std::cout << "Server waiting for connections...\n";
-
-   for (int i = 0; i < NUM_WORKERS; ++i) {
-      workerThread[i] =
-          std::thread(&SimpleHttpServer_t::process_worker_events, this, i);
-   }
-
-   listenerThread.join();
-   for (int i = 0; i < NUM_WORKERS; ++i) {
-      workerThread[i].join();
-   }
-
-   std::cout << "WE ARE FINISHED HERE AND ARE CLOSING THE PROGRAM" << std::endl;
-
-   return true;
-}
-
-//----------------------------------------------------------------------------
-void SimpleHttpServer_t::createSocket() {
-   // Create a socket (IPv4, TCP)
-   listeningSocket.sockfd = socket(AF_INET, SOCK_STREAM, 0);
-
-   if (listeningSocket.sockfd == -1) {
-      std::cout << "Failed to create socket. errno: " << errno << std::endl;
-      exit(EXIT_FAILURE);
-   }
-}
-
-//----------------------------------------------------------------------------
-HttpResponse_t SimpleHttpServer_t::pageNotFound(HttpRequest_t* httpReq) {
-
-   HttpResponse_t httpResponse{HttpResponse_t::HttpStatusCode::NotFound};
-
-   // Setting some headers
-   httpResponse.setHeader("Server", "Sandi");
-   httpResponse.setHeader("Content-Type", "text/html");
-
-   // Preparing answer from server
-   std::string resp_msg = "<h1>404 Page Not found</h1>";
-   resp_msg += "\nRequested: " + httpReq->httpUri + "\n";
-
-   // Building Body
-   httpResponse.buildResponseBody(resp_msg);
-
-   return httpResponse;
-}
-
-//----------------------------------------------------------------------------
-void SimpleHttpServer_t::serve_static_file(const fs::path& root_dir,
-                                           const std::string& path,
-                                           std::ostringstream& stream, size_t& fileSize) {
-   // Check if the path contains ".." to prevent access to parent directories
-   if (path.find("..") != std::string::npos) {
-      // Return a "Forbidden" response if the path is not safe
-      stream << "HTTP/1.1 403 Forbidden\r\n";
-      stream << "Content-Length: 0\r\n";
-      stream << "\r\n";
-      return;
-   }
-
-   // Append the requested path to the root directory
-   auto file_path = root_dir / path;
-
-   // Check if the file exists
-   if (!fs::exists(file_path)) {
-      // Return a "Not Found" response if the file does not exist
-      std::cout << "WE FOUND NOTHING for: " << file_path << std::endl;
-      stream << "HTTP/1.1 404 Not Found\r\n";
-      stream << "Content-Length: 0\r\n";
-      stream << "\r\n";
-      return;
-   }
-
-   // Open the file in read-only mode
-   std::ifstream file{file_path, std::ios::binary};
-
-   // Get the file size
-   auto size = fs::file_size(file_path);
-   fileSize = size;
-
-   // Set the Content-Type header based on the file's extension
-   std::string content_type = "text/plain";
-   if (file_path.extension() == ".html") {
-      content_type = "text/html";
-   }
-
-   else if (file_path.extension() == ".css") {
-      content_type = "text/css";
-   } else if (file_path.extension() == ".js") {
-      content_type = "application/javascript";
-   }
-
-   // Send the response headers
-   stream << "HTTP/1.1 200 OK\r\n";
-   stream << "Content-Length: " << size << "\r\n";
-   stream << "Content-Type: " << content_type << "\r\n";
-   stream << "\r\n";
-
-   std::cout << "ContentType: " << content_type << std::endl;
-
-   // Send the file contents
-   stream << file.rdbuf();
-}
-
-//----------------------------------------------------------------------------
-std::vector<std::string> SimpleHttpServer_t::split_path(const std::string& path,
-                                                        char delimiter) {
-   std::string token;
-   std::vector<std::string> tokens;
-   std::istringstream token_stream(path);
-
-   while (std::getline(token_stream, token, delimiter)) {
-      if(token.empty())
-         continue;
-      tokens.push_back(token);
-   }
-
-   return tokens;
+    return tokens;
 }

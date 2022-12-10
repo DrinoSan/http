@@ -5,3 +5,4 @@ cmake-build-debug
 build
 simpleHttpServer2
 .vscode
+cmake_install.cmake
