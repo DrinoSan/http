@@ -1,4 +1,13 @@
-# http
+# http - SAND
+
+# Todo:
+  - Add remaining http methods
+  - Improve parser
+  - Add Unit_tests --> This will probably never happen
+  - Add sending in chunks to unregistered paths
+  - Check get_in_addr function --> I forgot what I wanted to check here
+  - Summarize how kqueue, kevent works
+  - Simplify server_static_function / Make it easier to use
 
 # Serving static files
 
@@ -8,10 +17,15 @@
   buildResponseBody" is now possible
 
 # Add remaining http methods -> post,delete,put
+  - [x] GET
+  - [ ] POST
+  - [ ] PUT
+  - [ ] DELETE
 
 # Fix recv and send function to send whole data safe!
 
-- Added, for valid requests/response
+  - Added, for valid requests/response
+  - Need to add for paths which are not registered
 
 # Optimize Server with Threads
 
@@ -22,8 +36,6 @@
       to each of the workers kqueue
 - Splitting start server into multiple functions
     - Done. Start server function has been split in multiple smaller functions
-
-# Check how do determine a reasonable buffer size
 
 # Check get_in_addr function
 
@@ -37,10 +49,6 @@
 - What is it
 - How does it work?
 
-# TODO:
-
-- Adding Unit Tests
-- Give the parser some love to handle post and so on
 
 # Current Status
 
