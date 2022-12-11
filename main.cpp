@@ -23,19 +23,16 @@ int main()
 
                 std::ostringstream stream;
                 size_t fileSize;
-                server.serve_static_file(root_dir, request.resource, stream, fileSize);
+                server.serve_static_file(root_dir, request.resource, stream, fileSize, httpResponse);
 
                 auto body = stream.str();
-                // httpResponse.httpMessage = body.data();
-                // httpResponse.httpMessageLength = fileSize;
 
-                // httpResponse.buildResponseBody(body);
                 httpResponse.httpMessageLength = body.size();
                 httpResponse.httpResponseBody = body;
-                httpResponse.httpMessage = httpResponse.httpResponseBody.data();
+                httpResponse.httpMessage = httpResponse.httpResponseBody;
 
-
-                std::cout << "BODY: \n" << httpResponse.httpMessage << std::endl;
+                httpResponse.setHeader("Server", "Sandi");
+                httpResponse.buildResponseBody( body );
 
                 return httpResponse;
             };

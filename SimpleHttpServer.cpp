@@ -361,15 +361,18 @@ HttpResponse_t SimpleHttpServer_t::pageNotFound(HttpRequest_t* httpReq)
 //----------------------------------------------------------------------------
 void SimpleHttpServer_t::serve_static_file(const fs::path &root_dir,
                                            const std::string &path,
-                                           std::ostringstream &stream, size_t &fileSize)
+                                           std::ostringstream &stream, size_t &fileSize, HttpResponse_t &response)
 {
     // Check if the path contains ".." to prevent access to parent directories
     if (path.find("..") != std::string::npos)
     {
         // Return a "Forbidden" response if the path is not safe
-        stream << "HTTP/1.1 403 Forbidden\r\n";
-        stream << "Content-Length: 0\r\n";
-        stream << "\r\n";
+        response.statusCode = HttpResponse_t::HttpStatusCode::Forbidden;
+        response.setHeader("Content-Length", "0");
+        response.setHeader("Content-Type", "text/html");
+//        stream << "HTTP/1.1 403 Forbidden\r\n";
+//        stream << "Content-Length: 0\r\n";
+//        stream << "\r\n";
         return;
     }
 
@@ -381,9 +384,14 @@ void SimpleHttpServer_t::serve_static_file(const fs::path &root_dir,
     {
         // Return a "Not Found" response if the file does not exist
         std::cout << "WE FOUND NOTHING for: " << file_path << std::endl;
-        stream << "HTTP/1.1 404 Not Found\r\n";
-        stream << "Content-Length: 0\r\n";
-        stream << "\r\n";
+        response.statusCode = HttpResponse_t::HttpStatusCode::NotFound;
+        response.setHeader("Content-Length", "0");
+        response.setHeader("Content-Type", "text/html");
+
+        stream << "<h1>404 Page Not found</h1>";
+//        stream << "HTTP/1.1 404 Not Found\r\n";
+//        stream << "Content-Length: 0\r\n";
+//        stream << "\r\n";
         return;
     }
 
@@ -408,12 +416,14 @@ void SimpleHttpServer_t::serve_static_file(const fs::path &root_dir,
     }
 
     // Send the response headers
-    stream << "HTTP/1.1 200 OK\r\n";
-    stream << "Content-Length: " << size << "\r\n";
-    stream << "Content-Type: " << content_type << "\r\n";
-    stream << "\r\n";
+//    stream << "HTTP/1.1 200 OK\r\n";
+    response.setHeader("Content-Type", content_type);
+    response.setHeader("Content-Length", std::to_string(size));
 
-    std::cout << "ContentType: " << content_type << std::endl;
+
+//    stream << "Content-Length: " << size << "\r\n";
+//    stream << "Content-Type: " << content_type << "\r\n";
+//    stream << "\r\n";
 
     // Send the file contents
     stream << file.rdbuf();

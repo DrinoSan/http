@@ -68,7 +68,7 @@ public:
     bool startServer(std::string ipAddr = "", int64_t port = 8000);
 
     void serve_static_file(const fs::path &root_dir, const std::string &path,
-                           std::ostringstream &stream, size_t &fileSize);
+                           std::ostringstream &stream, size_t &fileSize, HttpResponse_t& response);
 
 private:
     HttpParser_t httpParser;
