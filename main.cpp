@@ -19,7 +19,8 @@ int main()
             {
                 HttpResponse_t httpResponse{HttpResponse_t::HttpStatusCode::Ok};
 
-                const auto root_dir = fs::path{"static"};
+                // the root_dir path depends on where the binary is executed
+                const auto root_dir = fs::path{"../static"};
 
                 std::ostringstream stream;
                 size_t fileSize;

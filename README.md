@@ -8,6 +8,7 @@
   - Check get_in_addr function --> I forgot what I wanted to check here
   - Summarize how kqueue, kevent works
   - Simplify server_static_function / Make it easier to use
+  - Check if handle_read is working okay?!
 
 # Serving static files
 
