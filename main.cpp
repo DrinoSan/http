@@ -8,6 +8,9 @@
 #include "HttpRequest.h"
 #include "HttpResponse.h"
 #include "SimpleHttpServer.h"
+#include "include/rapidjson/document.h"
+
+using namespace rapidjson;
 
 int main()
 {
@@ -33,7 +36,7 @@ int main()
                 httpResponse.httpMessage = httpResponse.httpResponseBody;
 
                 httpResponse.setHeader("Server", "Sandi");
-                httpResponse.buildResponseBody( body );
+                httpResponse.buildResponseBody(body);
 
                 return httpResponse;
             };
@@ -50,6 +53,48 @@ int main()
 
         // Preparing answer from server
         std::string resp_msg = "Hello World from Sandi's Server";
+
+        // Building Body
+        httpResponse.buildResponseBody(resp_msg);
+
+        return httpResponse;
+    };
+
+    auto testJsonParsing = [](const HttpRequest_t &request) -> HttpResponse_t
+    {
+        // Creating Response Object with StatusCode OK -> 200
+        HttpResponse_t httpResponse{HttpResponse_t::HttpStatusCode::Ok};
+
+        // Setting some headers
+        httpResponse.setHeader("Server", "Sandi");
+        httpResponse.setHeader("Content-Type", "text/plain");
+
+        // Preparing answer from server
+        std::string resp_msg = "Hello World from Sandi's Server";
+        for( const auto& [key, value] : request.headers )
+        {
+            std::cout << "HEADER Key: " << key << " Value: " << value << std::endl;
+        }
+
+        if( ! request.httpBody.empty() )
+        {
+            // 1. Parse a JSON string into DOM.
+            const char* json = request.httpBody.c_str();
+            Document d;
+            d.Parse(json);
+
+            const rapidjson::Value &V{};
+            for (auto it = d.MemberBegin(); it != d.MemberEnd(); ++it)
+            {
+                std::cout << "Key: " << it->name.GetString() << std::endl;
+                std::cout << "Value: " << it->value.GetString() << std::endl;
+                std::cout << "------" << std::endl;
+            }
+        }
+        else
+        {
+            std::cout << "BODY IS EMPTY" << std::endl;
+        }
 
         // Building Body
         httpResponse.buildResponseBody(resp_msg);
@@ -107,6 +152,8 @@ int main()
 
     server.registerRequestHandler("/static/", HttpRequest_t::HttpMethode::GET,
                                   serveStatic);
+
+    server.registerRequestHandler("/jsonParse", HttpRequest_t::HttpMethode::POST, testJsonParsing);
 
     server.startServer("127.0.0.1", 8000);
     return 0;
