@@ -35,7 +35,6 @@ char* HttpParser_t::parseMethodePathVersion(HttpRequest_t* httpReq)
 {
     try
     {
-        char* buffer = httpReq->buffer;
         char* buf = httpReq->buffer;
         const char* msg_end = "\r";
 
@@ -44,12 +43,16 @@ char* HttpParser_t::parseMethodePathVersion(HttpRequest_t* httpReq)
 
         // Find request type
         while (tail != msg_end && *tail != ' ')
+        {
             ++tail;
+        }
         // httpHeaders["Type"] = std::string(head, tail);
         HttpRequest_t::HttpMethode methode =
                 httpReq->stringToHttpMethode(std::string(head, tail));
         if (methode == HttpRequest_t::HttpMethode::UNKNOWN)
+        {
             return nullptr;
+        }
         httpReq->httpMethode = methode;
 
         // We need to increment tail because it is currently on the whitspace
@@ -57,19 +60,26 @@ char* HttpParser_t::parseMethodePathVersion(HttpRequest_t* httpReq)
 
         // Find path
         while (tail != msg_end && *tail != ' ')
+        {
             ++tail;
+        }
         httpReq->httpUri = std::string(++head, tail);
 
         // Find HTTP version
         while (tail != msg_end && *tail == ' ')
+        {
             ++tail;
+        }
         head = tail;
 
         while (tail != msg_end && *tail != '\r')
+        {
             ++tail;
+        }
         httpReq->httpVersion = std::string(head, tail);
 
         // To skip \r\n
+        char* buffer = httpReq->buffer;
         buffer = tail + 2;
 
         return buffer;
