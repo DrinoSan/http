@@ -15,11 +15,12 @@
 class HttpParser_t
 {
 private:
-    char* parseMethodePathVersion(HttpRequest_t* httpReq);
+//    char* parseMethodePathVersion(HttpRequest_t* httpReq);
 
 public:
-    bool parseRequest(HttpRequest_t* httpReq,
-                      std::map<std::string, std::string> &headers);
+    void mapHeaders(HttpRequest_t& httpReq);
+//    bool parseRequest(HttpRequest_t* httpReq,
+//                      std::map<std::string, std::string> &headers);
 };
 
 #endif  // SIMPLEHTTPSERVER2_HTTPPARSER_H

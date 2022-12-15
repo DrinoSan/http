@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string_view>
 #include <utility>
+#include <sstream>
 
 // Project Headers
 #include "HttpParser.h"
@@ -31,140 +32,197 @@
 // Accept-Language: en-GB,e__objc_imageinfo
 
 //----------------------------------------------------------------------------
-char* HttpParser_t::parseMethodePathVersion(HttpRequest_t* httpReq)
+void HttpParser_t::mapHeaders(HttpRequest_t& httpReq)
 {
-    try
+    // First line is METHODE, PATH, VERSION aka Request line
+    // Remaining lines are the headers
+    std::istringstream stream( httpReq.buffer );
+    std::string tester = httpReq.buffer;
+    std::string method, path, version;
+
+    stream >> method >> path >> version;
+    httpReq.httpMethode = httpReq.stringToHttpMethode(method);
+    httpReq.httpUri = path;
+    httpReq.httpVersion = version;
+
+    auto headers = stream.str();
+
+    std::string::size_type key_pos = 0;
+    std::string::size_type key_end;
+    std::string::size_type val_pos;
+    std::string::size_type val_end;
+
+    int64_t end_of_headers = tester.find("\r\n\r\n");
+    // TODO: Check if npos
+
+    while((key_end = headers.find(':', key_pos)) != std::string::npos && key_end < end_of_headers)
     {
-        char* buf = httpReq->buffer;
-        const char* msg_end = "\r";
-
-        char* head = buf;
-        char* tail = buf;
-
-        // Find request type
-        while (tail != msg_end && *tail != ' ')
+        if((val_pos = headers.find_first_not_of(": ", key_end)) == std::string::npos)
         {
-            ++tail;
-        }
-        // httpHeaders["Type"] = std::string(head, tail);
-        HttpRequest_t::HttpMethode methode =
-                httpReq->stringToHttpMethode(std::string(head, tail));
-        if (methode == HttpRequest_t::HttpMethode::UNKNOWN)
-        {
-            return nullptr;
-        }
-        httpReq->httpMethode = methode;
-
-        // We need to increment tail because it is currently on the whitspace
-        head = tail++;
-
-        // Find path
-        while (tail != msg_end && *tail != ' ')
-        {
-            ++tail;
-        }
-        httpReq->httpUri = std::string(++head, tail);
-
-        // Find HTTP version
-        while (tail != msg_end && *tail == ' ')
-        {
-            ++tail;
-        }
-        head = tail;
-
-        while (tail != msg_end && *tail != '\r')
-        {
-            ++tail;
-        }
-        httpReq->httpVersion = std::string(head, tail);
-
-        // To skip \r\n
-        char* buffer = httpReq->buffer;
-        buffer = tail + 2;
-
-        return buffer;
-    } catch (...)
-    {
-        std::cout << "Header is definitely not correct" << std::endl;
-        return nullptr;
-    }
-}
-
-//----------------------------------------------------------------------------
-bool HttpParser_t::parseRequest(HttpRequest_t* httpReq,
-                                std::map<std::string, std::string> &headers)
-{
-    char* begin;
-    char* end;
-    char* buffer = parseMethodePathVersion(httpReq);
-
-    if (buffer == nullptr)
-    {
-        std::cout << "GOT A NULLPTR. CLIENT ASKS FOR UNKNOWN SHIT" << std::endl;
-        std::cout << "Probably the Header is just wrong!" << std::endl;
-        return false;
-    }
-
-    for (size_t i = 0; i < NUM_HTTP_HEADERS; ++i)
-    {
-        // *(buffer++) |= 32 is a way to make everything lowercase
-        for (begin = buffer;
-             (*buffer != ':') && (*(unsigned char*) buffer) > 32;)
-        {
-            if (*(buffer) == '_')
-            {
-                buffer++;
-                continue;
-            }
-            *(buffer++) |= 32;
-        }
-        std::string key{std::string(begin, (size_t) (buffer - begin))};
-
-        // Checking if space is after :
-        if (buffer[0] == ':' && buffer[1] == ' ')
-        {
-            buffer += 2;
-        } else
-        {
-            // std::cout << *buffer << *(buffer+1) << *(buffer+2) << *(buffer+3) <<
-            // std::endl;
-            std::cout << "Headers are not correctly formated!" << std::endl;
             break;
         }
 
-        begin = buffer;
+        val_end = headers.find("\n", val_pos);
+        httpReq.headers.emplace(headers.substr(key_pos, key_end - key_pos), headers.substr(val_pos, val_end - val_pos-1));
 
-        while (*buffer != '\r')
+        key_pos = val_end;
+        if(key_pos != std::string::npos)
         {
-            ++buffer;
-        }
-        end = buffer;
-
-        bool found{false};
-        retry:
-        if (*end == '\r')
-        {
-            if (*(end + 1) == '\n')
-            {
-                end += 1;
-                ++buffer;
-                if (*(end + 1) == '\r' || found)
-                {
-                    if (found)
-                    {
-                        return true;
-                        // break;
-                    }
-                    found = true;
-                }
-                ++end;
-                goto retry;
-            }
+            ++key_pos;
         }
 
-        headers[key] = std::string{begin, (size_t) (buffer - begin)};
-        buffer += 1;
     }
 
-    return false;
+    auto it = httpReq.headers.find("Content-Length");
+    if( it == httpReq.headers.end() )
+    {
+        return;
+    }
+
+    auto header_end = headers.find("\r\n\r\n");
+
+    auto body = headers.substr(headers[0] + header_end, headers[0] + header_end + std::stoi(it->second));
+
+    httpReq.httpBody = body;
+
 }
+
+//----------------------------------------------------------------------------
+//char* HttpParser_t::parseMethodePathVersion(HttpRequest_t* httpReq)
+//{
+//    try
+//    {
+//        char* buf = httpReq->buffer;
+//        const char* msg_end = "\r";
+//
+//        char* head = buf;
+//        char* tail = buf;
+//
+//        // Find request type
+//        while (tail != msg_end && *tail != ' ')
+//        {
+//            ++tail;
+//        }
+//        // httpHeaders["Type"] = std::string(head, tail);
+//        HttpRequest_t::HttpMethode methode =
+//                httpReq->stringToHttpMethode(std::string(head, tail));
+//
+//        if (methode == HttpRequest_t::HttpMethode::UNKNOWN)
+//        {
+//            return nullptr;
+//        }
+//        httpReq->httpMethode = methode;
+//
+//        // We need to increment tail because it is currently on the whitspace
+//        head = tail++;
+//
+//        // Find path
+//        while (tail != msg_end && *tail != ' ')
+//        {
+//            ++tail;
+//        }
+//        httpReq->httpUri = std::string(++head, tail);
+//
+//        // Find HTTP version
+//        while (tail != msg_end && *tail == ' ')
+//        {
+//            ++tail;
+//        }
+//        head = tail;
+//
+//        while (tail != msg_end && *tail != '\r')
+//        {
+//            ++tail;
+//        }
+//        httpReq->httpVersion = std::string(head, tail);
+//
+//        // To skip \r\n
+//        char* buffer = httpReq->buffer;
+//        buffer = tail + 2;
+//
+//        return buffer;
+//    } catch (...)
+//    {
+//        std::cout << "Header is definitely not correct" << std::endl;
+//        return nullptr;
+//    }
+//}
+//
+////----------------------------------------------------------------------------
+//bool HttpParser_t::parseRequest(HttpRequest_t* httpReq,
+//                                std::map<std::string, std::string> &headers)
+//{
+//    char* begin;
+//    char* end;
+//    char* buffer = parseMethodePathVersion(httpReq);
+//
+//    if (buffer == nullptr)
+//    {
+//        std::cout << "GOT A NULLPTR. CLIENT ASKS FOR UNKNOWN SHIT" << std::endl;
+//        std::cout << "Probably the Header is just wrong!" << std::endl;
+//        return false;
+//    }
+//
+//    for (size_t i = 0; i < NUM_HTTP_HEADERS; ++i)
+//    {
+//        // *(buffer++) |= 32 is a way to make everything lowercase
+//        for (begin = buffer;
+//             (*buffer != ':') && (*(unsigned char*) buffer) > 32;)
+//        {
+//            if (*(buffer) == '_')
+//            {
+//                buffer++;
+//                continue;
+//            }
+//            *(buffer++) |= 32;
+//        }
+//        std::string key{std::string(begin, (size_t) (buffer - begin))};
+//
+//        // Checking if space is after :
+//        if (buffer[0] == ':' && buffer[1] == ' ')
+//        {
+//            buffer += 2;
+//        } else
+//        {
+//            // std::cout << *buffer << *(buffer+1) << *(buffer+2) << *(buffer+3) <<
+//            // std::endl;
+//            std::cout << "Headers are not correctly formated!" << std::endl;
+//            break;
+//        }
+//
+//        begin = buffer;
+//
+//        while (*buffer != '\r')
+//        {
+//            ++buffer;
+//        }
+//        end = buffer;
+//
+//        bool found{false};
+//        retry:
+//        if (*end == '\r')
+//        {
+//            if (*(end + 1) == '\n')
+//            {
+//                end += 1;
+//                ++buffer;
+//                if (*(end + 1) == '\r' || found)
+//                {
+//                    if (found)
+//                    {
+//                        return true;
+//                        // break;
+//                    }
+//                    found = true;
+//                }
+//                ++end;
+//                goto retry;
+//            }
+//        }
+//
+//        headers[key] = std::string{begin, (size_t) (buffer - begin)};
+//        buffer += 1;
+//    }
+//
+//    return false;
+//}

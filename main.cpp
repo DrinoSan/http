@@ -79,17 +79,17 @@ int main()
         if( ! request.httpBody.empty() )
         {
             // 1. Parse a JSON string into DOM.
-            const char* json = request.httpBody.c_str();
-            Document d;
-            d.Parse(json);
-
-            const rapidjson::Value &V{};
-            for (auto it = d.MemberBegin(); it != d.MemberEnd(); ++it)
-            {
-                std::cout << "Key: " << it->name.GetString() << std::endl;
-                std::cout << "Value: " << it->value.GetString() << std::endl;
-                std::cout << "------" << std::endl;
-            }
+//            const char* json = request.httpBody.c_str();
+//            Document d;
+//            d.Parse(json);
+//
+//            const rapidjson::Value &V{};
+//            for (auto it = d.MemberBegin(); it != d.MemberEnd(); ++it)
+//            {
+//                std::cout << "Key: " << it->name.GetString() << std::endl;
+//                std::cout << "Value: " << it->value.GetString() << std::endl;
+//                std::cout << "------" << std::endl;
+//            }
         }
         else
         {

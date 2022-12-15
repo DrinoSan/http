@@ -126,7 +126,7 @@ HttpRequest_t SimpleHttpServer_t::handle_read(
     if (bytesRead < 5)
         return httpRequest;
 
-    httpParser.parseRequest(&httpRequest, httpRequest.headers);
+    httpParser.mapHeaders(httpRequest);
 
     return httpRequest;
 }
@@ -224,7 +224,7 @@ void SimpleHttpServer_t::process_worker_events(int worker_idx)
 
         for (int i = 0; i < new_events; i++)
         {
-            std::cout << "new_events: " << new_events << std::endl;
+//            std::cout << "new_events: " << new_events << std::endl;
             int event_fd = working_events[worker_idx][i].ident;
 
             SimpleHttpServer_t::sockInfos_t* sockInfo =
