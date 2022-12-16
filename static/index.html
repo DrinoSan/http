@@ -1,14 +1,25 @@
 <html>
-<head>
-    <title>SAND Server</title>
-    <script src="script.js"></script>
-    <link href="style.css" rel="stylesheet">
-</head>
-<body>
-<h1>This is a working server. With extern css</h1>
-<p style="color:red;">A red paragraph. With inline css</p>
+    <head>
+        <title>SAND Server</title>
+        <script src="script.js"></script>
+        <link href="style.css" rel="stylesheet">
+        <meta content-type="application/json">
+    </head>
+    <body>
+        <h1>This is a working server. With extern css</h1>
+        <p style="color:red;">A red paragraph. With inline css</p>
 
-<h3>Current time</h3>
+        <h3>Current time</h3>
+        <span id="time"></span>
 
-</body>
+    <!-- 4 input felder -->
+    <!--    request an 127.0.0.1/jsonParser-->
+        <form class="form" action="http://127.0.0.1:8000/jsonParse" method="POST">
+            <label for="product-id">Product ID:</label>
+            <input type="text" id="product-id" name="product-id">
+            <label for="quantity">Quantity:</label>
+            <input type="text" id="quantity" name="quantity"></br>
+            <button type="submit">Submit</button>
+        </form>
+    </body>
 </html>
