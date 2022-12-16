@@ -39,7 +39,6 @@ void HttpParser_t::mapHeaders(HttpRequest_t& httpReq)
     std::istringstream stream( httpReq.buffer );
     std::string tester = httpReq.buffer;
     std::string method, path, version;
-
     stream >> method >> path >> version;
     httpReq.httpMethode = httpReq.stringToHttpMethode(method);
     httpReq.httpUri = path;
@@ -81,10 +80,9 @@ void HttpParser_t::mapHeaders(HttpRequest_t& httpReq)
 
     auto header_end = headers.find("\r\n\r\n");
 
-    auto body = headers.substr(headers[0] + header_end, headers[0] + header_end + std::stoi(it->second));
+    std::string body_s(httpReq.buffer + (size_t)header_end + (size_t) 4, httpReq.buffer + (size_t)header_end + (size_t) + 4 + (size_t) + std::stoi(it->second));
 
-    httpReq.httpBody = body;
-
+    httpReq.httpBody = body_s;
 }
 
 //----------------------------------------------------------------------------

@@ -9,6 +9,7 @@
   - Summarize how kqueue, kevent works
   - Simplify server_static_function / Make it easier to use
   - Check if handle_read is working okay?!
+  - Add PHP support -> Thanks to mujtaba
 
 # Serving static files
 
