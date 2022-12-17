@@ -2,13 +2,13 @@
 // Created by becirbeg on 28.10.2022.
 //
 
-#ifndef SIMPLEHTTPSERVER2_HTTPRESPONSE_H
-#define SIMPLEHTTPSERVER2_HTTPRESPONSE_H
+#ifndef SIMPLEHTTPSERVER2_HTTPRESPONSE_T_H
+#define SIMPLEHTTPSERVER2_HTTPRESPONSE_T_H
 
 #include <string>
-#include "HttpMessage.h"
+#include "HttpMessage_t.h"
 
-class HttpResponse_t : public HttpMessage
+class HttpResponse_t : public HttpMessage_t
 {
 
 public:
@@ -56,4 +56,4 @@ public:
     void buildResponseBody(std::string respMsg);
 };
 
-#endif  // SIMPLEHTTPSERVER2_HTTPRESPONSE_H
+#endif  // SIMPLEHTTPSERVER2_HTTPRESPONSE_T_H

@@ -24,10 +24,10 @@
 
 
 // Project Headers
-#include "HttpMessage.h"
-#include "HttpParser.h"
-#include "HttpRequest.h"
-#include "HttpResponse.h"
+#include "HttpMessage_t.h"
+#include "HttpParser_t.h"
+#include "HttpRequest_t.h"
+#include "HttpResponse_t.h"
 
 // Namespaces
 namespace fs = std::filesystem;

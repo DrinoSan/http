@@ -2,8 +2,8 @@
 // Created by becirbeg on 22.10.2022.
 //
 
-#ifndef SIMPLEHTTPSERVER2_HTTPMESSAGE_H
-#define SIMPLEHTTPSERVER2_HTTPMESSAGE_H
+#ifndef SIMPLEHTTPSERVER2_HTTPMESSAGE_T_H
+#define SIMPLEHTTPSERVER2_HTTPMESSAGE_T_H
 
 #define NUM_HTTP_HEADERS 50
 
@@ -14,12 +14,12 @@
 
 // Project Header
 
-class HttpMessage
+class HttpMessage_t
 {
 public:
-    HttpMessage(char* msg);
+    HttpMessage_t(char* msg);
 
-    HttpMessage() = default;
+    HttpMessage_t() = default;
 
     std::map<std::string, std::string> headers;
 
@@ -33,4 +33,4 @@ public:
     std::string httpResponseBody;
 };
 
-#endif  // SIMPLEHTTPSERVER2_HTTPMESSAGE_H
+#endif  // SIMPLEHTTPSERVER2_HTTPMESSAGE_T_H

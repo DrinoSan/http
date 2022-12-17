@@ -12,8 +12,8 @@
 #include <utility>
 
 // Project Headers
-#include "HttpRequest.h"
-#include "HttpResponse.h"
+#include "HttpRequest_t.h"
+#include "HttpResponse_t.h"
 #include "SimpleHttpServer.h"
 
 std::atomic<int> counter{0};

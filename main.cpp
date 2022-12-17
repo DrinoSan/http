@@ -3,12 +3,10 @@
 #include <iostream>
 #include <string>
 
-#include "HttpMessage.h"
-#include "HttpParser.h"
-#include "HttpRequest.h"
-#include "HttpResponse.h"
+#include "HttpRequest_t.h"
+#include "HttpResponse_t.h"
 #include "SimpleHttpServer.h"
-#include "include/rapidjson/document.h"
+#include "JsonParser_t.h"
 
 using namespace rapidjson;
 
@@ -80,17 +78,21 @@ int main()
         {
             std::cout << "Message Body: \n" << request.httpBody << std::endl;
             // 1. Parse a JSON string into DOM.
-            const char* json = request.httpBody.c_str();
-            Document d;
-            d.Parse(json);
+//            const char* json = request.httpBody.c_str();
+//            Document d;
+//            d.Parse(json);
 
-            const rapidjson::Value &V{};
-            for (auto it = d.MemberBegin(); it != d.MemberEnd(); ++it)
-            {
-                std::cout << "Key: " << it->name.GetString() << std::endl;
-                std::cout << "Value: " << it->value.GetDouble() << std::endl;
-                std::cout << "------" << std::endl;
-            }
+//            const rapidjson::Value &V{};
+//            for (auto it = d.MemberBegin(); it != d.MemberEnd(); ++it)
+//            {
+//                std::cout << "Key: " << it->name.GetString() << std::endl;
+//                std::cout << "Value: " << it->value.GetDouble() << std::endl;
+//                std::cout << "------" << std::endl;
+//            }
+            JsonParser_t jP(request.httpBody);
+            std::string type = jP.getTypeOfElement("productId");
+            std::cout << "TYPE:::::: " << type << std::endl;
+
         }
         else
         {

@@ -2,18 +2,18 @@
 // Created by becirbeg on 28.10.2022.
 //
 
-#ifndef SIMPLEHTTPSERVER2_HTTPREQUEST_H
-#define SIMPLEHTTPSERVER2_HTTPREQUEST_H
+#ifndef SIMPLEHTTPSERVER2_HTTPREQUEST_T_H
+#define SIMPLEHTTPSERVER2_HTTPREQUEST_T_H
 
 // System Headers
 #include <string>
 
 // Project Headers
-#include "HttpMessage.h"
+#include "HttpMessage_t.h"
 
 #define BUFFER_SIZE 20000
 
-class HttpRequest_t : public HttpMessage
+class HttpRequest_t : public HttpMessage_t
 {
 public:
     enum class HttpMethode
@@ -46,4 +46,4 @@ public:
     char buffer[BUFFER_SIZE];
 };
 
-#endif  // SIMPLEHTTPSERVER2_HTTPREQUEST_H
+#endif  // SIMPLEHTTPSERVER2_HTTPREQUEST_T_H

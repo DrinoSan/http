@@ -1,6 +1,7 @@
 # http - SAND
 
 # Todo:
+  - Add more functions to jsonParser_t so we can use it for more stuff within the server
   - Add remaining http methods
   - Improve parser
   - Add Unit_tests --> This will probably never happen

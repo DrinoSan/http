@@ -2,7 +2,7 @@
 // Created by becirbeg on 22.10.2022.
 //
 
-#include "HttpRequest.h"
+#include "HttpRequest_t.h"
 
 std::string HttpRequest_t::httpMethodeToString(
         HttpRequest_t::HttpMethode methode)
@@ -44,5 +44,5 @@ HttpRequest_t::HttpMethode HttpRequest_t::stringToHttpMethode(
 }
 
 // Constructor
-HttpRequest_t::HttpRequest_t(char* msg) : HttpMessage{msg}
+HttpRequest_t::HttpRequest_t(char* msg) : HttpMessage_t{msg}
 {}

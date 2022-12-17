@@ -2,7 +2,7 @@
 // Created by becirbeg on 28.10.2022.
 //
 
-#include "HttpResponse.h"
+#include "HttpResponse_t.h"
 #include <iostream>
 
 HttpResponse_t::HttpResponse_t(HttpResponse_t::HttpStatusCode code)

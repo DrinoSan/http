@@ -6,8 +6,8 @@
 #include <sstream>
 
 // Project Headers
-#include "HttpParser.h"
-#include "HttpRequest.h"
+#include "HttpParser_t.h"
+#include "HttpRequest_t.h"
 
 //----------------------------------------------------------------------------
 void HttpParser_t::mapHeaders(HttpRequest_t& httpReq)

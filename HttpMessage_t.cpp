@@ -6,10 +6,10 @@
 #include <iostream>
 
 // Project Headers
-#include "HttpMessage.h"
-#include "HttpParser.h"
+#include "HttpMessage_t.h"
+#include "HttpParser_t.h"
 
-HttpMessage::HttpMessage(char* msg) : httpMessage{msg}
+HttpMessage_t::HttpMessage_t(char* msg) : httpMessage{msg}
 {
     httpVersion = "HTTP/1.1";
 }
