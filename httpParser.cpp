@@ -9,28 +9,6 @@
 #include "HttpParser.h"
 #include "HttpRequest.h"
 
-// const char *msg =
-//"GET / HTTP/1.1\r\n"
-//"Host: 192.241.213.46:6880\r\n"
-//"Upgrade-Insecure-Requests: 1\r\n"
-//"Accept: "
-//"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\n"
-//"User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) "
-//"AppleWebKit/602.4.8 (KHTML, like Gecko) Version/10.0.3 "
-//"Safari/602.4.8\r\n"
-//"Accept-Language: en-us\r\n"
-//"Accept-Encoding: gzip, deflate\r\n"
-//"Connection: keep-alive\r\n\r\n";
-//
-
-// GET /sand HTTP/1.1
-// Host: 127.0.0.1:8000
-// Upgrade-Insecure-Requests: 1
-// Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*[>;q=0.8
-// User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)
-// AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Safari/605.1.15
-// Accept-Language: en-GB,e__objc_imageinfo
-
 //----------------------------------------------------------------------------
 void HttpParser_t::mapHeaders(HttpRequest_t& httpReq)
 {
@@ -39,37 +17,47 @@ void HttpParser_t::mapHeaders(HttpRequest_t& httpReq)
     std::istringstream stream( httpReq.buffer );
     std::string tester = httpReq.buffer;
     std::string method, path, version;
+
+    // Parsing methode, path and version
     stream >> method >> path >> version;
+
+    // Converting methode to enum
     httpReq.httpMethode = httpReq.stringToHttpMethode(method);
+    
     httpReq.httpUri = path;
     httpReq.httpVersion = version;
 
-    auto headers = stream.str();
+    auto requestMessage = stream.str();
 
+    // Declaring variables for positions of key and values
     std::string::size_type key_pos = 0;
     std::string::size_type key_end;
     std::string::size_type val_pos;
     std::string::size_type val_end;
 
-    int64_t end_of_headers = tester.find("\r\n\r\n");
-    // TODO: Check if npos
-
-    while((key_end = headers.find(':', key_pos)) != std::string::npos && key_end < end_of_headers)
+    auto end_of_headers = tester.find("\r\n\r\n");
+    // Finding end of httpMessage
+    if( end_of_headers == std::string::npos )
     {
-        if((val_pos = headers.find_first_not_of(": ", key_end)) == std::string::npos)
+        // Todo: What shall we do here?
+        return;
+    }
+
+    while((key_end = requestMessage.find(':', key_pos)) != std::string::npos && key_end < end_of_headers)
+    {
+        if((val_pos = requestMessage.find_first_not_of(": ", key_end)) == std::string::npos)
         {
             break;
         }
 
-        val_end = headers.find("\n", val_pos);
-        httpReq.headers.emplace(headers.substr(key_pos, key_end - key_pos), headers.substr(val_pos, val_end - val_pos-1));
+        val_end = requestMessage.find("\n", val_pos);
+        httpReq.headers.emplace(requestMessage.substr(key_pos, key_end - key_pos), requestMessage.substr(val_pos, val_end - val_pos - 1));
 
         key_pos = val_end;
         if(key_pos != std::string::npos)
         {
             ++key_pos;
         }
-
     }
 
     auto it = httpReq.headers.find("Content-Length");
@@ -78,11 +66,18 @@ void HttpParser_t::mapHeaders(HttpRequest_t& httpReq)
         return;
     }
 
-    auto header_end = headers.find("\r\n\r\n");
 
-    std::string body_s(httpReq.buffer + (size_t)header_end + (size_t) 4, httpReq.buffer + (size_t)header_end + (size_t) + 4 + (size_t) + std::stoi(it->second));
+    // Adding 4 to the position of end_of_headers because \r\n\r\n
+    end_of_headers += 4;
 
-    httpReq.httpBody = body_s;
+    // Let's trust, that the content_length is correct
+    // Constructing std::string from a char array.
+    // We start at the 0th position and add end_of_headers <--- this is our START
+    // We get all chars till start + content_length        <--- this is our END
+    //                  //_____________START_______________,_________________________________END_______________________________________
+    std::string bodyMessage(httpReq.buffer + end_of_headers, httpReq.buffer + end_of_headers + (size_t) + std::stoi(it->second));
+
+    httpReq.httpBody = bodyMessage;
 }
 
 //----------------------------------------------------------------------------
