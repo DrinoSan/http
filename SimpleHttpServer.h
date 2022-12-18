@@ -41,70 +41,70 @@ constexpr int CHUNK_SIZE = 1000;
 class SimpleHttpServer_t
 {
 private:
-    int setNonBlocking(int sockfd);
+	int setNonBlocking(int sockfd);
 
-    void createSocket();
+	void createSocket();
 
-    void listen_and_accept();
+	void listen_and_accept();
 
-    void prepare_kqueue_events();
+	void prepare_kqueue_events();
 
-    void process_worker_events(int worker_idx);
+	void process_worker_events(int worker_idx);
 
-    std::vector<std::string> split_path(const std::string &path, char delimiter);
+	std::vector<std::string> split_path(const std::string& path, char delimiter);
 
 public:
-    SimpleHttpServer_t();
+	SimpleHttpServer_t();
 
-    ~SimpleHttpServer_t() = default;
+	~SimpleHttpServer_t() = default;
 
-    using HttpRequestHandler_t =
-            std::function<HttpResponse_t(const HttpRequest_t &)>;
+	using HttpRequestHandler_t =
+			std::function<HttpResponse_t(const HttpRequest_t&)>;
 
-    void registerRequestHandler(std::string uri,
-                                HttpRequest_t::HttpMethode methode,
-                                HttpRequestHandler_t callback);
+	void registerRequestHandler(std::string uri,
+			HttpRequest_t::HttpMethode methode,
+			HttpRequestHandler_t callback);
 
-    bool startServer(std::string ipAddr = "", int64_t port = 8000);
+	bool startServer(std::string ipAddr = "", int64_t port = 8000);
 
-    void serve_static_file(const fs::path &root_dir, const std::string &path,
-                           std::ostringstream &stream, size_t &fileSize, HttpResponse_t& response);
+	void serve_static_file(const fs::path& root_dir, const std::string& path,
+			std::ostringstream& stream, size_t& fileSize, HttpResponse_t& response);
 
 private:
-    HttpParser_t httpParser;
-    std::map<std::string, std::string> http_request;
-    std::map<std::string,
-            std::map<HttpRequest_t::HttpMethode, HttpRequestHandler_t>>
-            requestHandler;
+	HttpParser_t httpParser;
+	std::map<std::string, std::string> http_request;
+	std::map<std::string,
+			std::map<HttpRequest_t::HttpMethode, HttpRequestHandler_t>>
+			requestHandler;
 
-    struct sockInfos_t
-    {
-        int sockfd;
-        uintptr_t ptrAddress;
-        HttpRequest_t httpReq;
-        HttpResponse_t httpResp;
-        std::function<void(struct sockInfos_t* sockInfo)> read_handler;
-        std::function<void(struct sockInfos_t* sockinfo)> write_handler;
-    };
+	struct sockInfos_t
+	{
+		int sockfd;
+		uintptr_t ptrAddress;
+		HttpRequest_t httpReq;
+		HttpResponse_t httpResp;
+		std::function<void(struct sockInfos_t* sockInfo)> read_handler;
+		std::function<void(struct sockInfos_t* sockinfo)> write_handler;
+	};
 
-    HttpRequest_t handle_read(struct sockInfos_t* sockInfo);
+	HttpRequest_t handle_read(struct sockInfos_t* sockInfo);
 
-    void handle_write(struct sockInfos_t* sockInfo, HttpRequest_t httpRequest);
+	void handle_write(struct sockInfos_t* sockInfo, HttpRequest_t httpRequest);
 
-    sockInfos_t listeningSocket;
+	sockInfos_t listeningSocket;
 
-    struct kevent change_event[NUM_EVENTS];
-    struct kevent event[NUM_EVENTS];
-    int working_kqueue_fd[NUM_WORKERS];
-    struct kevent working_events[NUM_WORKERS][NUM_EVENTS];
-    struct kevent working_chevents[NUM_WORKERS][NUM_EVENTS];
+	struct kevent change_event[NUM_EVENTS];
+	struct kevent event[NUM_EVENTS];
+	int working_kqueue_fd[NUM_WORKERS];
+	struct kevent working_events[NUM_WORKERS][NUM_EVENTS];
+	struct kevent working_chevents[NUM_WORKERS][NUM_EVENTS];
 
-    std::thread listenerThread;
-    std::thread workerThread[NUM_WORKERS];
-    int kq;
+	std::thread listenerThread;
+	std::thread workerThread[NUM_WORKERS];
+	int kq;
 
-    // Handler for not registerd paths
-    HttpResponse_t pageNotFound(HttpRequest_t* httpReq);
+	// Handler for not registerd paths
+	HttpResponse_t pageNotFound(HttpRequest_t* httpReq);
 };
 
 #endif  // SIMPLEHTTPSERVER2_SIMPLEHTTPSERVER_H

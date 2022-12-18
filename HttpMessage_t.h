@@ -17,20 +17,20 @@
 class HttpMessage_t
 {
 public:
-    HttpMessage_t(char* msg);
+	HttpMessage_t(char* msg);
 
-    HttpMessage_t() = default;
+	HttpMessage_t() = default;
 
-    std::map<std::string, std::string> headers;
+	std::map<std::string, std::string> headers;
 
 private:
 public:
-    std::string httpVersion{"HTTP/1.1"};
-    std::string httpBody;
+	std::string httpVersion{ "HTTP/1.1" };
+	std::string httpBody;
 
-    std::string httpMessage;
-    size_t httpMessageLength;
-    std::string httpResponseBody;
+	std::string httpMessage;
+	size_t httpMessageLength;
+	std::string httpResponseBody;
 };
 
 #endif  // SIMPLEHTTPSERVER2_HTTPMESSAGE_T_H

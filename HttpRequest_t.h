@@ -16,34 +16,34 @@
 class HttpRequest_t : public HttpMessage_t
 {
 public:
-    enum class HttpMethode
-    {
-        GET,
-        POST,
-        DELETE,
-        PUT,
-        UPDATE,
-        UNKNOWN,
-    };
+	enum class HttpMethode
+	{
+		GET,
+		POST,
+		DELETE,
+		PUT,
+		UPDATE,
+		UNKNOWN,
+	};
 
 public:
-    HttpRequest_t(char* msg);
+	HttpRequest_t(char* msg);
 
-    HttpRequest_t() = default;
+	HttpRequest_t() = default;
 
-    ~HttpRequest_t() = default;
+	~HttpRequest_t() = default;
 
-    char* parseMethodePathVersion(char* msg);
+	char* parseMethodePathVersion(char* msg);
 
-    std::string httpMethodeToString(HttpMethode method);
+	std::string httpMethodeToString(HttpMethode method);
 
-    HttpMethode stringToHttpMethode(std::string methode);
+	HttpMethode stringToHttpMethode(std::string methode);
 
 public:
-    HttpMethode httpMethode;
-    std::string httpUri;
-    std::string resource;
-    char buffer[BUFFER_SIZE];
+	HttpMethode httpMethode;
+	std::string httpUri;
+	std::string resource;
+	char buffer[BUFFER_SIZE];
 };
 
 #endif  // SIMPLEHTTPSERVER2_HTTPREQUEST_T_H

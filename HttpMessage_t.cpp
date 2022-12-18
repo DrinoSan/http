@@ -9,7 +9,8 @@
 #include "HttpMessage_t.h"
 #include "HttpParser_t.h"
 
-HttpMessage_t::HttpMessage_t(char* msg) : httpMessage{msg}
+HttpMessage_t::HttpMessage_t(char* msg)
+		:httpMessage{ msg }
 {
-    httpVersion = "HTTP/1.1";
+	httpVersion = "HTTP/1.1";
 }

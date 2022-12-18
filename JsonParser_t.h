@@ -12,38 +12,37 @@
 // Project Headers
 #include "include/rapidjson/document.h"
 
-
 static const char* kTypeNames[] =
-        { "Null", "False", "True", "Object", "Array", "String", "Number" };
+		{ "Null", "False", "True", "Object", "Array", "String", "Number" };
 
 class JsonParser_t
 {
 public:
-    JsonParser_t(std::string messageBody);
-    ~JsonParser_t() = default;
+	JsonParser_t(std::string messageBody);
 
-    // Stringify whole json object
-    std::string dumpJson();
+	~JsonParser_t() = default;
 
-    rapidjson::Value& get (std::string element);
+	// Stringify whole json object
+	std::string dumpJson();
 
-    // Get value type of element {"element": "value"}
-    template<typename T>
-    std::string getTypeOfElement(T element)
-    {
-        if( ! document.HasMember(element) )
-        {
-            std::cout << "Element not Found" << std::endl;
-            return std::string();
-        }
+	rapidjson::Value& get(std::string element);
 
-        return kTypeNames[ document[ element ].GetType() ];
-    }
+	// Get value type of element {"element": "value"}
+	template<typename T>
+	std::string getTypeOfElement(T element)
+	{
+		if (!document.HasMember(element))
+		{
+			std::cout << "Element not Found" << std::endl;
+			return std::string();
+		}
+
+		return kTypeNames[document[element].GetType()];
+	}
 
 private:
-    std::string messageBody;
-    rapidjson::Document document;
+	std::string messageBody;
+	rapidjson::Document document;
 };
-
 
 #endif //SIMPLEHTTPSERVER2_JSONPARSER_T_H

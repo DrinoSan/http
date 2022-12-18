@@ -18,7 +18,7 @@ private:
 //    char* parseMethodePathVersion(HttpRequest_t* httpReq);
 
 public:
-    void mapHeaders(HttpRequest_t& httpReq);
+	void mapHeaders(HttpRequest_t& httpReq);
 //    bool parseRequest(HttpRequest_t* httpReq,
 //                      std::map<std::string, std::string> &headers);
 };
