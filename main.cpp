@@ -86,7 +86,8 @@ int main()
 
 			// This way we need to know already before what the type of the variable is...
 			auto& foo = jP.get("productId");
-			std::cout << foo.GetInt() << std::endl;
+			int val;
+			jP.extractor(foo);
 
 		}
 		else

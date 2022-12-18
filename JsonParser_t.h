@@ -27,6 +27,23 @@ public:
 
 	rapidjson::Value& get(std::string element);
 
+	void extractor(rapidjson::Value& val);
+
+	template<typename T, typename U>
+	T getVal(U& element)
+	{
+		if constexpr (std::is_same<U, const char*>::value)
+		{
+			std::cout << "SAND STRING: " << element;
+			return element;
+		}
+		else if constexpr (std::is_same<U, int>::value)
+		{
+			std::cout << "SAND INT: " << element;
+			return element;
+		}
+	}
+
 	// Get value type of element {"element": "value"}
 	template<typename T>
 	std::string getTypeOfElement(T element)
