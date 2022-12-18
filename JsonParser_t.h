@@ -7,6 +7,7 @@
 
 // System Headers
 #include <string>
+#include <iostream>
 
 // Project Headers
 #include "include/rapidjson/document.h"
@@ -21,17 +22,23 @@ public:
     JsonParser_t(std::string messageBody);
     ~JsonParser_t() = default;
 
+    // Stringify whole json object
+    std::string dumpJson();
+
+    rapidjson::Value& get (std::string element);
+
+    // Get value type of element {"element": "value"}
     template<typename T>
     std::string getTypeOfElement(T element)
     {
         if( ! document.HasMember(element) )
         {
-            return std::string("Element not Found!");
+            std::cout << "Element not Found" << std::endl;
+            return std::string();
         }
 
         return kTypeNames[ document[ element ].GetType() ];
     }
-
 
 private:
     std::string messageBody;

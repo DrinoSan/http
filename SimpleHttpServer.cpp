@@ -28,7 +28,6 @@ void* get_in_addr(struct sockaddr* sa)
     {
         return &(((struct sockaddr_in*) sa)->sin_addr);
     }
-    std::cout << "hey" << std::endl;
 
     return &(((struct sockaddr_in6*) sa)->sin6_addr);
 }
