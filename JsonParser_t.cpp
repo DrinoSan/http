@@ -33,19 +33,3 @@ rapidjson::Value& JsonParser_t::get(std::string element)
 
 	return document[element.c_str()];
 }
-
-void JsonParser_t::extractor(rapidjson::Value& val)
-{
-	if (val.IsString())
-	{
-		auto str = val.GetString();
-		std::string vall = getVal<std::string>(str);
-	}
-	else if (val.IsInt())
-	{
-		auto y = val.GetInt();
-		int i = getVal<int>(y);
-	}
-
-	return;
-}
