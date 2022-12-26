@@ -1,9 +1,11 @@
 # http - SAND
 
 # Todo:
+  - Send json object back to client.
+    - Add function to construct object.
   - Add more functions to jsonParser_t so we can use it for more stuff within the server
     - Now we can extract bool, string, ints and arrays this should be fine for now
-    - Additionally I need to add to parse further nested objects.
+    - Additionally, I need to add to parse further nested objects.
   - Add remaining http methods
   - Improve parser
     - This is improved for now. Still not happy with it
