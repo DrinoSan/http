@@ -2,8 +2,11 @@
 
 # Todo:
   - Add more functions to jsonParser_t so we can use it for more stuff within the server
+    - Now we can extract bool, string, ints and arrays this should be fine for now
+    - Additionally I need to add to parse further nested objects.
   - Add remaining http methods
   - Improve parser
+    - This is improved for now. Still not happy with it
   - Add Unit_tests --> This will probably never happen
   - Add sending in chunks to unregistered paths
   - Check get_in_addr function --> I forgot what I wanted to check here
@@ -11,6 +14,8 @@
   - Simplify server_static_function / Make it easier to use
   - Check if handle_read is working okay?!
   - Add PHP support -> Thanks to mujtaba
+  - Add dynamic routing stuff
+
 
 # Serving static files
 
