@@ -56,6 +56,28 @@ public:
 
 			return tmp;
 		}
+		else if constexpr (std::is_same<T, std::vector<std::string>>::value)
+		{
+			auto a = document[element].GetArray();
+			std::vector<int> tmp;
+			for (rapidjson::Value::ConstValueIterator itr = a.Begin(); itr != a.End(); ++itr)
+			{
+				tmp.emplace_back(itr->GetString());
+			}
+
+			return std::move(tmp);
+		}
+		else if constexpr (std::is_same<T, std::vector<bool>>::value)
+		{
+			auto a = document[element].GetArray();
+			std::vector<int> tmp;
+			for (rapidjson::Value::ConstValueIterator itr = a.Begin(); itr != a.End(); ++itr)
+			{
+				tmp.emplace_back(itr->GetBool());
+			}
+
+			return std::move(tmp);
+		}
 	}
 
 	//----------------------------------------------------------------------------
@@ -77,6 +99,14 @@ public:
 		else if constexpr (std::is_same<U, std::vector<int>>::value)
 		{
 			target = getVal<std::vector<int>>(source);
+		}
+		else if constexpr (std::is_same<U, std::vector<std::string>>::value)
+		{
+			target = getVal<std::vector<std::string>>(source);
+		}
+		else if constexpr (std::is_same<U, std::vector<bool>>::value)
+		{
+			target = getVal<std::vector<bool>>(source);
 		}
 	}
 
