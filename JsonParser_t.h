@@ -8,6 +8,7 @@
 // System Headers
 #include <string>
 #include <iostream>
+#include <vector>
 
 // Project Headers
 #include "include/rapidjson/document.h"
@@ -27,9 +28,8 @@ public:
 
 	rapidjson::Value& get(std::string element);
 
-//	void extractor(rapidjson::Value& val);
-
 	//----------------------------------------------------------------------------
+	// std::move is not needed because compiler will I think implicitly move the return
 	template<typename T>
 	T getVal(const char* element)
 	{
@@ -40,6 +40,21 @@ public:
 		else if constexpr (std::is_same<T, int>::value)
 		{
 			return document[element].GetInt();
+		}
+		else if constexpr (std::is_same<T, bool>::value)
+		{
+			return document[element].GetBool();
+		}
+		else if constexpr (std::is_same<T, std::vector<int>>::value)
+		{
+			auto a = document[element].GetArray();
+			std::vector<int> tmp;
+			for (rapidjson::Value::ConstValueIterator itr = a.Begin(); itr != a.End(); ++itr)
+			{
+				tmp.emplace_back(itr->GetInt());
+			}
+
+			return tmp;
 		}
 	}
 
@@ -54,6 +69,14 @@ public:
 		else if constexpr (std::is_same<U, int>::value)
 		{
 			target = getVal<int>(source);
+		}
+		else if constexpr (std::is_same<U, bool>::value)
+		{
+			target = getVal<bool>(source);
+		}
+		else if constexpr (std::is_same<U, std::vector<int>>::value)
+		{
+			target = getVal<std::vector<int>>(source);
 		}
 	}
 

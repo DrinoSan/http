@@ -92,6 +92,13 @@ int main()
 			std::string quantity;
 			jP.extractValue("quantity", quantity);
 			std::cout << "VALUE::::::::::quantity::::: " << quantity << std::endl;
+			std::vector<int> vec;
+			jP.extractValue("arr", vec);
+			for(const auto& x : vec)
+			{
+				std::cout << "VALUE::::X: " << x << std::endl;
+			}
+
 
 
 
