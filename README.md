@@ -1,8 +1,11 @@
-# http - SAND
+# MiniHttp - SAND
+
+![](/img/mini.png)
 
 # Todo:
   - Send json object back to client.
     - Add function to construct object.
+  - Check reachable code
   - Add more functions to jsonParser_t so we can use it for more stuff within the server
     - Now we can extract bool, string, ints and arrays this should be fine for now
     - Additionally, I need to add to parse further nested objects.
@@ -17,6 +20,13 @@
   - Check if handle_read is working okay?!
   - Add PHP support -> Thanks to mujtaba
   - Add dynamic routing stuff
+  - HttpRequest_t SimpleHttpServer_t::handle_read fix that ugly methode wtf
+  - Code:
+    - Layout
+      - Public methodes
+      - Public members
+      - Private methodes
+      - Private members
 
 
 # Serving static files
