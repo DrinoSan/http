@@ -67,7 +67,6 @@ void HttpParser_t::mapHeaders(HttpRequest_t& httpReq)
 		return;
 	}
 
-
 	// Adding 4 to the position of end_of_headers because \r\n\r\n
 	end_of_headers += 4;
 
