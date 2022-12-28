@@ -6,6 +6,7 @@ This project is using only rapidJson as extern library
 
 # Todo:
   - This Todo ist getting bigger, I should start deleting finished stuff
+  - Create seperate handler function to work with servingStaticFiles
   - Send json object back to client.
     - Add function to construct object.
   - Check reachable code
