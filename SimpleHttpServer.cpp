@@ -44,7 +44,6 @@ void SimpleHttpServer_t::registerRequestHandler(
 		std::string uri, HttpRequest_t::HttpMethode methode,
 		HttpRequestHandler_t callback)
 {
-
 	requestHandler[uri].insert(std::make_pair(methode, callback));
 }
 
@@ -73,7 +72,7 @@ void SimpleHttpServer_t::listen_and_accept()
 {
 	// Setting basic variables needed for accepting new connections from
 	// clients
-	int32_t client_len, socket_connection_fd;
+	int32_t client_len;
 	struct sockaddr_in client_addr;
 
 	int worker_idx{ 0 };
@@ -110,6 +109,8 @@ void SimpleHttpServer_t::listen_and_accept()
 		if (worker_idx == NUM_WORKERS)
 			worker_idx = 0;
 	}
+
+	// Make me reachable
 	close(listeningSocket.sockfd);
 }
 
@@ -117,7 +118,6 @@ void SimpleHttpServer_t::listen_and_accept()
 HttpRequest_t SimpleHttpServer_t::handle_read(
 		SimpleHttpServer_t::sockInfos_t* sockInfo)
 {
-
 	HttpRequest_t httpRequest;
 	memset(httpRequest.buffer, '\0', BUFFER_SIZE);
 
@@ -134,7 +134,6 @@ HttpRequest_t SimpleHttpServer_t::handle_read(
 void SimpleHttpServer_t::handle_write(SimpleHttpServer_t::sockInfos_t* sockInfo,
 		HttpRequest_t httpRequest)
 {
-
 	auto tokens = split_path(httpRequest.httpUri, '/');
 
 	// Debug
@@ -146,10 +145,16 @@ void SimpleHttpServer_t::handle_write(SimpleHttpServer_t::sockInfos_t* sockInfo,
 	{
 		std::cout << "We found a sub url" << std::endl;
 
-		// Index 0 should be the basic path
-		uri = "/" + tokens[0] + "/";
-		httpRequest.resource = tokens[1];
+		// Check if static. If not, we probably have a nested path: /home/foo/bar
+		if (tokens[0] == "static")
+		{
+			// Index 0 should be the basic path
+			uri = "/" + tokens[0] + "/";
+			httpRequest.resource = tokens[tokens.size() - 1];
+		}
 	}
+
+	std::cout << "URRRI: " << uri << std::endl;
 
 	auto it_uri = requestHandler.find(uri);
 	if (it_uri == requestHandler.end())
@@ -189,7 +194,6 @@ void SimpleHttpServer_t::handle_write(SimpleHttpServer_t::sockInfos_t* sockInfo,
 //----------------------------------------------------------------------------
 void SimpleHttpServer_t::prepare_kqueue_events()
 {
-
 	for (int i = 0; i < NUM_WORKERS; ++i)
 	{
 		if ((working_kqueue_fd[i] = kqueue()) < 0)
@@ -203,7 +207,6 @@ void SimpleHttpServer_t::prepare_kqueue_events()
 //----------------------------------------------------------------------------
 void SimpleHttpServer_t::process_worker_events(int worker_idx)
 {
-
 	int64_t new_events;  //, socket_connection_fd, client_len;
 
 	// File descriptor for kqueue
@@ -211,7 +214,6 @@ void SimpleHttpServer_t::process_worker_events(int worker_idx)
 
 	while (true)
 	{
-
 		new_events =
 				kevent(worker_kfd, NULL, 0, working_events[worker_idx], 1, NULL);
 
@@ -223,7 +225,6 @@ void SimpleHttpServer_t::process_worker_events(int worker_idx)
 
 		for (int i = 0; i < new_events; i++)
 		{
-//            std::cout << "new_events: " << new_events << std::endl;
 			int event_fd = working_events[worker_idx][i].ident;
 
 			SimpleHttpServer_t::sockInfos_t* sockInfo =
@@ -268,7 +269,6 @@ void SimpleHttpServer_t::process_worker_events(int worker_idx)
 //----------------------------------------------------------------------------
 bool SimpleHttpServer_t::startServer(std::string ipAddr, int64_t port)
 {
-
 	sockaddr_in sockaddr;
 	sockaddr.sin_family = AF_INET;
 	if (ipAddr != "")
@@ -342,7 +342,6 @@ void SimpleHttpServer_t::createSocket()
 //----------------------------------------------------------------------------
 HttpResponse_t SimpleHttpServer_t::pageNotFound(HttpRequest_t* httpReq)
 {
-
 	HttpResponse_t httpResponse{ HttpResponse_t::HttpStatusCode::NotFound };
 
 	// Setting some headers
@@ -449,3 +448,39 @@ std::vector<std::string> SimpleHttpServer_t::split_path(const std::string& path,
 
 	return tokens;
 }
+
+////----------------------------------------------------------------------------
+//HttpResponse_t SimpleHttpServer_t::fileServer(std::string rootDir, const std::string& resource)
+//{
+//	// the root_dir path depends on where the binary is executed
+//	const auto root_dir = fs::path{ rootDir };
+//	HttpResponse_t response;
+//
+//	std::ostringstream stream;
+//
+//	SimpleHttpServer_t::serve_static_file(rootDir, resource);
+//
+//	response.httpMessageLength = stream.str().size();
+//	response.httpResponseBody = stream.str();
+//	response.httpMessage = response.httpResponseBody;
+//
+//	response.setHeader("Server", "Sandi");
+//	response.buildResponseBody(stream.str());
+//
+//	return response;
+//}
+//
+////----------------------------------------------------------------------------
+//HttpResponse_t SimpleHttpServer_t::stripPrefix(std::string path, HttpRequest_t request)
+//{
+//	request.httpUri = request.httpUri.substr(path.length());
+//
+//	return HttpResponse_t();
+//}
+//
+////----------------------------------------------------------------------------
+//void SimpleHttpServer_t::handle(std::string uri, HttpRequest_t::HttpMethode methode,
+//		SimpleHttpServer_t::HttpRequestHandlerFileServer_t callback)
+//{
+//	requestHandler[uri].insert(std::make_pair(methode, callback));
+//}

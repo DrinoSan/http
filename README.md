@@ -9,6 +9,7 @@ This project is using only rapidJson as extern library
   - Create seperate handler function to work with servingStaticFiles
     - Look how golang solved this
     - Need to fix this asap
+    - We dont need the resource name in the signature
   - Send json object back to client.
     - Add function to construct object.
   - Check reachable code
