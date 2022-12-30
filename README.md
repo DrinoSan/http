@@ -7,7 +7,6 @@ This project is using only rapidJson as extern library
 # Todo:
   - Cleanup of code and simplifying of code
     - This is the next prio
-  - This Todo ist getting bigger, I should start deleting finished stuff
   - Send json object back to client.
     - Add function to construct object.
   - Check reachable code
@@ -18,16 +17,12 @@ This project is using only rapidJson as extern library
   - Improve parser
     - This is improved for now. Still not happy with it
   - Add Unit_tests --> This will probably never happen
-  - Add sending in chunks to unregistered paths
   - Check get_in_addr function --> I forgot what I wanted to check here
   - Summarize how kqueue, kevent works
   - Simplify server_static_function / Make it easier to use
   - Check if handle_read is working okay?!
   - Add PHP support -> Thanks to mujtaba
   - Add dynamic routing stuff
-  - Nested paths -> /home/foo/bar
-    - Works now
-    - But probably doesn't work when serving static files
   - HttpRequest_t SimpleHttpServer_t::handle_read fix that ugly methode wtf
   - Code:
     - Layout
@@ -46,7 +41,7 @@ This project is using only rapidJson as extern library
 
 # Add remaining http methods -> post,delete,put
   - [x] GET
-  - [ ] POST
+  - [x] POST
   - [ ] PUT
   - [ ] DELETE
 
