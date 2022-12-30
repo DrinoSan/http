@@ -59,7 +59,7 @@ public:
 	~SimpleHttpServer_t() = default;
 
 	using HttpRequestHandler_t =
-			std::function<HttpResponse_t(const HttpRequest_t&)>;
+			std::function<HttpResponse_t(HttpRequest_t&)>;
 
 	void registerRequestHandler(std::string uri,
 			HttpRequest_t::HttpMethode methode,
@@ -70,9 +70,15 @@ public:
 	void serve_static_file(const fs::path& root_dir, const std::string& path,
 			std::ostringstream& stream, size_t& fileSize, HttpResponse_t& response);
 
+	HttpRequestHandler_t fileServer(std::string rootDir);
+
+	HttpRequestHandler_t stripPrefix(const std::string prefix, HttpRequestHandler_t handler);
+
 private:
 	HttpParser_t httpParser;
 	std::map<std::string, std::string> http_request;
+	std::filesystem::path root;
+	std::string fileServerPath;
 	std::map<std::string,
 			std::map<HttpRequest_t::HttpMethode, HttpRequestHandler_t>>
 			requestHandler;

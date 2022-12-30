@@ -12,32 +12,32 @@ using namespace rapidjson;
 
 int main()
 {
-
 	SimpleHttpServer_t server;
 
-	auto serveStatic =
-			[&server](const HttpRequest_t& request) -> HttpResponse_t
-			{
-				HttpResponse_t httpResponse{ HttpResponse_t::HttpStatusCode::Ok };
-
-				// the root_dir path depends on where the binary is executed
-				const auto root_dir = fs::path{ "../static" };
-
-				std::ostringstream stream;
-				size_t fileSize;
-				server.serve_static_file(root_dir, request.resource, stream, fileSize, httpResponse);
-
-				auto body = stream.str();
-
-				httpResponse.httpMessageLength = body.size();
-				httpResponse.httpResponseBody = body;
-				httpResponse.httpMessage = httpResponse.httpResponseBody;
-
-				httpResponse.setHeader("Server", "Sandi");
-				httpResponse.buildResponseBody(body);
-
-				return httpResponse;
-			};
+//	auto serveStatic =
+//			[&server](const HttpRequest_t& request) -> HttpResponse_t
+//			{
+//				HttpResponse_t httpResponse{ HttpResponse_t::HttpStatusCode::Ok };
+//
+//				// the root_dir path depends on where the binary is executed
+//				const auto root_dir = fs::path{ "../static" };
+//				server.fileServerPath = "static";
+//
+//				std::ostringstream stream;
+//				size_t fileSize;
+//				server.serve_static_file(root_dir, request.resource, stream, fileSize, httpResponse);
+//
+//				auto body = stream.str();
+//
+//				httpResponse.httpMessageLength = body.size();
+//				httpResponse.httpResponseBody = body;
+//				httpResponse.httpMessage = httpResponse.httpResponseBody;
+//
+//				httpResponse.setHeader("Server", "Sandi");
+//				httpResponse.buildResponseBody(body);
+//
+//				return httpResponse;
+//			};
 
 	// Creating callback function
 	auto helloWorld = [](const HttpRequest_t& request) -> HttpResponse_t
@@ -80,7 +80,6 @@ int main()
 
 			JsonParser_t jP(request.httpBody);
 			std::string type = jP.getTypeOfElement("productId");
-			std::cout << "TYPE:::::: " << type << std::endl;
 			std::cout << jP.dumpJson() << std::endl;
 			std::cout << "------------------" << std::endl;
 
@@ -88,20 +87,10 @@ int main()
 			auto& foo = jP.get("productId");
 			int val;
 			jP.extractValue("productId", val);
-			std::cout << "VALUE::::::::::productId::::: " << val << std::endl;
 			std::string quantity;
 			jP.extractValue("quantity", quantity);
-			std::cout << "VALUE::::::::::quantity::::: " << quantity << std::endl;
 			std::vector<int> vec;
 			jP.extractValue("arr", vec);
-			for(const auto& x : vec)
-			{
-				std::cout << "VALUE::::X: " << x << std::endl;
-			}
-
-
-
-
 		}
 		else
 		{
@@ -162,11 +151,17 @@ int main()
 	server.registerRequestHandler("/dummy", HttpRequest_t::HttpMethode::GET,
 			dummy);
 
-	server.registerRequestHandler("/static/", HttpRequest_t::HttpMethode::GET,
-			serveStatic);
+	server.registerRequestHandler("/dummy/foo/bar", HttpRequest_t::HttpMethode::GET,
+			dummy);
+
+	server.registerRequestHandler("/files/", HttpRequest_t::HttpMethode::GET,
+			server.stripPrefix("/files/", server.fileServer("../static")));
 
 	server.registerRequestHandler("/jsonParse", HttpRequest_t::HttpMethode::POST, testJsonParsing);
 
+	server.registerRequestHandler("/parameter/{:id}", HttpRequest_t::HttpMethode::GET, home);
+
 	server.startServer("127.0.0.1", 8000);
+//	server.startServer("192.168.0.32", 8000);
 	return 0;
 }

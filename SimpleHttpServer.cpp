@@ -146,7 +146,7 @@ void SimpleHttpServer_t::handle_write(SimpleHttpServer_t::sockInfos_t* sockInfo,
 		std::cout << "We found a sub url" << std::endl;
 
 		// Check if static. If not, we probably have a nested path: /home/foo/bar
-		if (tokens[0] == "static")
+		if (tokens[0] == fileServerPath)
 		{
 			// Index 0 should be the basic path
 			uri = "/" + tokens[0] + "/";
@@ -449,38 +449,50 @@ std::vector<std::string> SimpleHttpServer_t::split_path(const std::string& path,
 	return tokens;
 }
 
-////----------------------------------------------------------------------------
-//HttpResponse_t SimpleHttpServer_t::fileServer(std::string rootDir, const std::string& resource)
-//{
-//	// the root_dir path depends on where the binary is executed
-//	const auto root_dir = fs::path{ rootDir };
-//	HttpResponse_t response;
-//
-//	std::ostringstream stream;
-//
-//	SimpleHttpServer_t::serve_static_file(rootDir, resource);
-//
-//	response.httpMessageLength = stream.str().size();
-//	response.httpResponseBody = stream.str();
-//	response.httpMessage = response.httpResponseBody;
-//
-//	response.setHeader("Server", "Sandi");
-//	response.buildResponseBody(stream.str());
-//
-//	return response;
-//}
-//
-////----------------------------------------------------------------------------
-//HttpResponse_t SimpleHttpServer_t::stripPrefix(std::string path, HttpRequest_t request)
-//{
-//	request.httpUri = request.httpUri.substr(path.length());
-//
-//	return HttpResponse_t();
-//}
-//
-////----------------------------------------------------------------------------
-//void SimpleHttpServer_t::handle(std::string uri, HttpRequest_t::HttpMethode methode,
-//		SimpleHttpServer_t::HttpRequestHandlerFileServer_t callback)
-//{
-//	requestHandler[uri].insert(std::make_pair(methode, callback));
-//}
+//----------------------------------------------------------------------------
+SimpleHttpServer_t::HttpRequestHandler_t SimpleHttpServer_t::fileServer(std::string rootDir)
+{
+	// the root_dir path depends on where the binary is executed
+	const auto root_dir = fs::path{ rootDir };
+	root = root_dir;
+
+	auto serveStatic =
+			[this, root_dir](const HttpRequest_t& request) -> HttpResponse_t
+			{
+				HttpResponse_t httpResponse{ HttpResponse_t::HttpStatusCode::Ok };
+
+				std::ostringstream stream;
+				size_t fileSize;
+				this->serve_static_file(root_dir, request.resource, stream, fileSize, httpResponse);
+
+				auto body = stream.str();
+
+				httpResponse.httpMessageLength = body.size();
+				httpResponse.httpResponseBody = body;
+				httpResponse.httpMessage = httpResponse.httpResponseBody;
+
+				httpResponse.setHeader("Server", "Sandi");
+				httpResponse.buildResponseBody(body);
+
+				return httpResponse;
+			};
+
+	return serveStatic;
+}
+
+//----------------------------------------------------------------------------
+SimpleHttpServer_t::HttpRequestHandler_t
+SimpleHttpServer_t::stripPrefix(const std::string prefix, SimpleHttpServer_t::HttpRequestHandler_t handler)
+{
+	fileServerPath = prefix;
+	fileServerPath = fileServerPath.substr(1, prefix.length()).substr(0, prefix.length() - 2);
+
+	auto serveStatic =
+			[this, prefix, handler](HttpRequest_t& request) -> HttpResponse_t
+			{
+				request.httpUri = request.httpUri.substr(prefix.length());
+				return handler(request);
+			};
+
+	return serveStatic;
+}
