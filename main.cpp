@@ -2,6 +2,10 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <random>
+
+#include <chrono>
+#include <thread>
 
 #include "HttpRequest_t.h"
 #include "HttpResponse_t.h"
@@ -140,6 +144,30 @@ int main()
 
 		return httpResponse;
 	};
+	// Creating callback function
+	auto getRandomNumber = [](const HttpRequest_t& request) -> HttpResponse_t
+	{
+		// Creating Response Object with StatusCode OK -> 200
+		HttpResponse_t httpResponse{ HttpResponse_t::HttpStatusCode::Ok };
+
+		// Setting some headers
+		httpResponse.setHeader("Server", "Sandi");
+		httpResponse.setHeader("Content-Type", "text/html");
+		httpResponse.setHeader("Access-Control-Allow-Origin", "*");
+
+		std::random_device dev;
+		std::mt19937 rng(dev());
+		std::uniform_int_distribution<std::mt19937::result_type> dist6(1,100); // distribution in range [1, 6]
+
+		// Preparing answer from server
+		std::string resp_msg = std::to_string(dist6(rng));
+		std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+
+		// Building Body
+		httpResponse.buildResponseBody(resp_msg);
+
+		return httpResponse;
+	};
 
 	// Registering path: /sand for GET with helloWorld callback
 	server.registerRequestHandler("/sand", HttpRequest_t::HttpMethode::GET,
@@ -154,10 +182,13 @@ int main()
 	server.registerRequestHandler("/dummy/foo/bar", HttpRequest_t::HttpMethode::GET,
 			dummy);
 
+	// Register /files/ path as
 	server.registerRequestHandler("/files/", HttpRequest_t::HttpMethode::GET,
 			server.stripPrefix("/files/", server.fileServer("../static")));
 
 	server.registerRequestHandler("/jsonParse", HttpRequest_t::HttpMethode::POST, testJsonParsing);
+
+	server.registerRequestHandler("/random-number", HttpRequest_t::HttpMethode::GET, getRandomNumber);
 
 	server.registerRequestHandler("/parameter/{:id}", HttpRequest_t::HttpMethode::GET, home);
 
