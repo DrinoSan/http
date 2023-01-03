@@ -42,18 +42,22 @@ public:
 		GatewayTimeout = 504,
 		HttpVersionNotSupported = 505,
 	};
+	HttpStatusCode statusCode;
 
 	HttpResponse_t(HttpStatusCode code);
 
 	HttpResponse_t();
 
-	HttpStatusCode statusCode;
+	~HttpResponse_t() = default;
 
 	void setHeader(const std::string& key, const std::string& value);
 
+	void buildResponseBody(std::string respMsg);
+
+private:
+
 	std::string httpStatusCodeToString(HttpStatusCode code);
 
-	void buildResponseBody(std::string respMsg);
 };
 
 #endif  // SIMPLEHTTPSERVER2_HTTPRESPONSE_T_H

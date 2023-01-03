@@ -38,28 +38,15 @@ constexpr int NUM_WORKERS = 5;
 constexpr int NUM_EVENTS = 10000;
 constexpr int CHUNK_SIZE = 1000;
 
+using HttpRequestHandler_t =
+		std::function<HttpResponse_t(HttpRequest_t&)>;
+
 class SimpleHttpServer_t
 {
-private:
-	int setNonBlocking(int sockfd);
-
-	void createSocket();
-
-	void listen_and_accept();
-
-	void prepare_kqueue_events();
-
-	void process_worker_events(int worker_idx);
-
-	std::vector<std::string> split_path(const std::string& path, char delimiter);
-
 public:
 	SimpleHttpServer_t();
 
 	~SimpleHttpServer_t() = default;
-
-	using HttpRequestHandler_t =
-			std::function<HttpResponse_t(HttpRequest_t&)>;
 
 	void registerRequestHandler(std::string uri,
 			HttpRequest_t::HttpMethode methode,
@@ -73,6 +60,19 @@ public:
 	HttpRequestHandler_t fileServer(std::string rootDir);
 
 	HttpRequestHandler_t stripPrefix(const std::string prefix, HttpRequestHandler_t handler);
+
+private:
+	int setNonBlocking(int sockfd);
+
+	void createSocket();
+
+	void listen_and_accept();
+
+	void prepare_kqueue_events();
+
+	void process_worker_events(int worker_idx);
+
+	std::vector<std::string> split_path(const std::string& path, char delimiter);
 
 private:
 	HttpParser_t httpParser;
@@ -93,21 +93,21 @@ private:
 		std::function<void(struct sockInfos_t* sockinfo)> write_handler;
 	};
 
+private:
 	HttpRequest_t handle_read(struct sockInfos_t* sockInfo);
 
 	void handle_write(struct sockInfos_t* sockInfo, HttpRequest_t httpRequest);
 
 	sockInfos_t listeningSocket;
 
-	struct kevent change_event[NUM_EVENTS];
-	struct kevent event[NUM_EVENTS];
 	int working_kqueue_fd[NUM_WORKERS];
 	struct kevent working_events[NUM_WORKERS][NUM_EVENTS];
 	struct kevent working_chevents[NUM_WORKERS][NUM_EVENTS];
 
 	std::thread listenerThread;
 	std::thread workerThread[NUM_WORKERS];
-	int kq;
+	// Todo: Fix unused variable
+	[[maybe_unused]] int kq;
 
 	// Handler for not registerd paths
 	HttpResponse_t pageNotFound(HttpRequest_t* httpReq);

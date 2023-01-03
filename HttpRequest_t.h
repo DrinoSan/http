@@ -26,6 +26,11 @@ public:
 		UNKNOWN,
 	};
 
+	HttpMethode httpMethode;
+	std::string httpUri;
+	std::string resource;
+	char buffer[BUFFER_SIZE];
+
 public:
 	HttpRequest_t(char* msg);
 
@@ -33,17 +38,10 @@ public:
 
 	~HttpRequest_t() = default;
 
-	char* parseMethodePathVersion(char* msg);
-
 	std::string httpMethodeToString(HttpMethode method);
 
 	HttpMethode stringToHttpMethode(std::string methode);
 
-public:
-	HttpMethode httpMethode;
-	std::string httpUri;
-	std::string resource;
-	char buffer[BUFFER_SIZE];
 };
 
 #endif  // SIMPLEHTTPSERVER2_HTTPREQUEST_T_H

@@ -10,6 +10,7 @@
 #include <cstring>
 #include <thread>
 #include <utility>
+#include <signal.h>
 
 // Project Headers
 #include "HttpRequest_t.h"
@@ -67,6 +68,11 @@ int SimpleHttpServer_t::setNonBlocking(int sockfd)
 	return 0;
 }
 
+volatile sig_atomic_t flag = 0;
+void cleanup(int sig)
+{
+	flag = 1;
+}
 //----------------------------------------------------------------------------
 void SimpleHttpServer_t::listen_and_accept()
 {
@@ -76,6 +82,8 @@ void SimpleHttpServer_t::listen_and_accept()
 	struct sockaddr_in client_addr;
 
 	int worker_idx{ 0 };
+
+//	signal(SIGINT, cleanup);
 
 	while (true)
 	{
@@ -108,9 +116,17 @@ void SimpleHttpServer_t::listen_and_accept()
 
 		if (worker_idx == NUM_WORKERS)
 			worker_idx = 0;
+
+//		if(flag)
+//		{
+//			std::cout << "GOT SIGINT in listen" << std::endl;
+//			break;
+//		}
 	}
+	std::cout << "EXITING LISTEN FUNCTION" << std::endl;
 
 	// Make me reachable
+	// Need to listen for cancel events to exit the loop
 	close(listeningSocket.sockfd);
 }
 
@@ -214,6 +230,11 @@ void SimpleHttpServer_t::process_worker_events(int worker_idx)
 
 	while (true)
 	{
+//		if(flag)
+//		{
+//			std::cout << "GOT SIGINT" << std::endl;
+//			break;
+//		}
 		new_events =
 				kevent(worker_kfd, NULL, 0, working_events[worker_idx], 1, NULL);
 
@@ -450,7 +471,7 @@ std::vector<std::string> SimpleHttpServer_t::split_path(const std::string& path,
 }
 
 //----------------------------------------------------------------------------
-SimpleHttpServer_t::HttpRequestHandler_t SimpleHttpServer_t::fileServer(std::string rootDir)
+HttpRequestHandler_t SimpleHttpServer_t::fileServer(std::string rootDir)
 {
 	// the root_dir path depends on where the binary is executed
 	const auto root_dir = fs::path{ rootDir };
@@ -481,8 +502,8 @@ SimpleHttpServer_t::HttpRequestHandler_t SimpleHttpServer_t::fileServer(std::str
 }
 
 //----------------------------------------------------------------------------
-SimpleHttpServer_t::HttpRequestHandler_t
-SimpleHttpServer_t::stripPrefix(const std::string prefix, SimpleHttpServer_t::HttpRequestHandler_t handler)
+HttpRequestHandler_t
+SimpleHttpServer_t::stripPrefix(const std::string prefix, HttpRequestHandler_t handler)
 {
 	fileServerPath = prefix;
 	fileServerPath = fileServerPath.substr(1, prefix.length()).substr(0, prefix.length() - 2);
