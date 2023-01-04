@@ -5,9 +5,6 @@
 #ifndef SIMPLEHTTPSERVER2_HTTPPARSER_T_H
 #define SIMPLEHTTPSERVER2_HTTPPARSER_T_H
 
-// System headers
-#include <string_view>
-
 // Project Headers
 #include "HttpMessage_t.h"
 #include "HttpRequest_t.h"

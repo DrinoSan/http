@@ -3,7 +3,6 @@
 //
 
 #include "HttpResponse_t.h"
-#include <iostream>
 
 HttpResponse_t::HttpResponse_t(HttpResponse_t::HttpStatusCode code)
 		:statusCode{ code }

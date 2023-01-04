@@ -1,11 +1,4 @@
-#include <cstdlib>
-#include <fstream>
-#include <iostream>
-#include <string>
 #include <random>
-
-#include <chrono>
-#include <thread>
 
 #include "HttpRequest_t.h"
 #include "HttpResponse_t.h"

@@ -12,8 +12,6 @@
 #include <string>
 #include <string_view>
 
-// Project Header
-
 class HttpMessage_t
 {
 public:

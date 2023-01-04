@@ -7,7 +7,6 @@
 
 // Project Headers
 #include "HttpMessage_t.h"
-#include "HttpParser_t.h"
 
 HttpMessage_t::HttpMessage_t(char* msg)
 		:httpMessage{ msg }
