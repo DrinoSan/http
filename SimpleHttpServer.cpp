@@ -157,6 +157,7 @@ void SimpleHttpServer_t::handle_write(SimpleHttpServer_t::sockInfos_t* sockInfo,
 		std::cout << "TOKEN: " << token << std::endl;
 
 	std::string uri{ httpRequest.httpUri };
+	std::cout << "URI 1: " << uri << std::endl;
 	if (tokens.size() > 1)
 	{
 		std::cout << "We found a sub url" << std::endl;
@@ -166,7 +167,15 @@ void SimpleHttpServer_t::handle_write(SimpleHttpServer_t::sockInfos_t* sockInfo,
 		{
 			// Index 0 should be the basic path
 			uri = "/" + tokens[0] + "/";
-			httpRequest.resource = tokens[tokens.size() - 1];
+			for(size_t i = 1; i < tokens.size(); ++i)
+			{
+				if(i == tokens.size()-1)
+				{
+					httpRequest.resource += tokens[i];
+					break;
+				}
+				httpRequest.resource += tokens[i] + "/";
+			}
 		}
 	}
 
@@ -397,6 +406,7 @@ void SimpleHttpServer_t::serve_static_file(const fs::path& root_dir,
 		return;
 	}
 
+	std::cout << "PATH: " << path << " root_dir: " << root_dir << std::endl;
 	// Append the requested path to the root directory
 	auto file_path = root_dir / path;
 
@@ -436,6 +446,10 @@ void SimpleHttpServer_t::serve_static_file(const fs::path& root_dir,
 	else if (file_path.extension() == ".js")
 	{
 		content_type = "application/javascript";
+	}
+	else if (file_path.extension() == ".wasm")
+	{
+		content_type = "application/wasm";
 	}
 
 	// Send the response headers
