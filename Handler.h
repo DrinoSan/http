@@ -4,8 +4,8 @@
 
 // HeaderOnly
 
-#ifndef SIMPLEHTTPSERVER2_CALLBACK_H
-#define SIMPLEHTTPSERVER2_CALLBACK_H
+#ifndef SIMPLEHTTPSERVER2_HANDLER_H
+#define SIMPLEHTTPSERVER2_HANDLER_H
 
 // Project Headers
 #include "HttpRequest_t.h"
@@ -30,7 +30,7 @@ auto helloWorldHandler = [](const HttpRequest_t& request) -> HttpResponse_t
 };
 
 // Creating callback function
-auto helloWorld = [](const HttpRequest_t& request) -> HttpResponse_t
+auto helloWorld_ = [](const HttpRequest_t& request) -> HttpResponse_t
 {
 	// Creating Response Object with StatusCode OK -> 200
 	HttpResponse_t httpResponse{ HttpResponse_t::HttpStatusCode::Ok };
@@ -38,6 +38,20 @@ auto helloWorld = [](const HttpRequest_t& request) -> HttpResponse_t
 	// Setting some headers
 	httpResponse.setHeader("Server", "Sandi");
 	httpResponse.setHeader("Content-Type", "text/plain");
+
+	// Preparing answer from server
+	std::string resp_msg = "Hello World from Sandi's Server";
+
+	// Building Body
+	httpResponse.buildResponseBody(resp_msg);
+
+	return httpResponse;
+};
+
+auto helloWorld = [](const HttpRequest_t& request) -> HttpResponse_t
+{
+	// Creating Response Object with StatusCode OK -> 200
+	HttpResponse_t httpResponse{ HttpResponse_t::HttpStatusCode::Ok };
 
 	// Preparing answer from server
 	std::string resp_msg = "Hello World from Sandi's Server";
@@ -155,4 +169,4 @@ auto getRandomNumber = [](const HttpRequest_t& request) -> HttpResponse_t
 	return httpResponse;
 };
 
-#endif //SIMPLEHTTPSERVER2_CALLBACK_H
+#endif //SIMPLEHTTPSERVER2_HANDLER_H
