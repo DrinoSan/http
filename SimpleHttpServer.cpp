@@ -36,7 +36,7 @@ void* get_in_addr(struct sockaddr* sa)
 //----------------------------------------------------------------------------
 SimpleHttpServer_t::SimpleHttpServer_t()
 {
-	createSocket();
+//	createSocket();
 	kq = kqueue();
 }
 
@@ -99,6 +99,9 @@ void SimpleHttpServer_t::listen_and_accept()
 			--counter;
 			continue;
 		}
+
+		inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr*)&their_addr), s, sizeof s);
+		std::cout << "Server: got connection from " << s << std::endl;
 
 		// Put this new socket connection also as a 'filter' event
 		// to watch in kqueue, so we can now watch for events on this
