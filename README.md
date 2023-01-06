@@ -4,6 +4,7 @@
 
 This project is using only rapidJson as extern library
 
+Will check to move todos to issues. I don't like it like that anymore
 # Todo:
   - Cleanup of code and simplifying of code
     - This is the next prio
@@ -17,12 +18,10 @@ This project is using only rapidJson as extern library
   - Improve parser
     - This is improved for now. Still not happy with it
   - Add Unit_tests --> This will probably never happen
-  - Check get_in_addr function --> I forgot what I wanted to check here
   - Summarize how kqueue, kevent works
-  - Simplify server_static_function / Make it easier to use
   - Check if handle_read is working okay?!
   - Add PHP support -> Thanks to mujtaba
-  - Add dynamic routing stuff
+    - This would introduce more complexity and I cant handle it
   - HttpRequest_t SimpleHttpServer_t::handle_read fix that ugly methode wtf
   - Code:
     - Layout
@@ -46,11 +45,6 @@ This project is using only rapidJson as extern library
   - [ ] PUT
   - [ ] DELETE
 
-# Fix recv and send function to send whole data safe!
-
-  - Added, for valid requests/response
-  - Need to add for paths which are not registered
-
 # Optimize Server with Threads
 
 - Adding separate thread for listen and for event handling
@@ -60,12 +54,6 @@ This project is using only rapidJson as extern library
       to each of the workers kqueue
 - Splitting start server into multiple functions
     - Done. Start server function has been split in multiple smaller functions
-
-# Check get_in_addr function
-
-- For ip network format to string
-- Probably inet_ntop function is wrongly used
-- Make Ip to string conversion work with sockaddr_storage, so we can later handle IPv4 and IPv6
 
 # Using Kqueue
 
