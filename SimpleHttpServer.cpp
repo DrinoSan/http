@@ -19,9 +19,6 @@
 
 std::atomic<int> counter{ 0 };
 
-// get sockaddr, IPv4 or IPv6:
-// This Function is important for the inet_ntop function later on if we use
-// sockaddr_storage
 //----------------------------------------------------------------------------
 void* get_in_addr(struct sockaddr* sa)
 {
@@ -36,7 +33,6 @@ void* get_in_addr(struct sockaddr* sa)
 //----------------------------------------------------------------------------
 SimpleHttpServer_t::SimpleHttpServer_t()
 {
-//	createSocket();
 	kq = kqueue();
 }
 
@@ -78,11 +74,6 @@ void cleanup(int sig)
 //----------------------------------------------------------------------------
 void SimpleHttpServer_t::listen_and_accept()
 {
-	// Setting basic variables needed for accepting new connections from
-	// clients
-	int32_t client_len;
-	struct sockaddr_in client_addr;
-
 	int worker_idx{ 0 };
 
 //	signal(SIGINT, cleanup);
@@ -161,7 +152,6 @@ void SimpleHttpServer_t::handle_write(SimpleHttpServer_t::sockInfos_t* sockInfo,
 		std::cout << "TOKEN: " << token << std::endl;
 
 	std::string uri{ httpRequest.httpUri };
-	std::cout << "URI 1: " << uri << std::endl;
 	if (tokens.size() > 1)
 	{
 		std::cout << "We found a sub url" << std::endl;
@@ -183,12 +173,9 @@ void SimpleHttpServer_t::handle_write(SimpleHttpServer_t::sockInfos_t* sockInfo,
 		}
 	}
 
-	std::cout << "URRRI: " << uri << std::endl;
-
 	auto it_uri = requestHandler.find(uri);
 	if (it_uri == requestHandler.end())
 	{
-		std::cout << "URI: " << uri << std::endl;
 		HttpResponse_t httpResponse = pageNotFound(&httpRequest);
 		send(sockInfo->sockfd, httpResponse.httpMessage.data(),
 				httpResponse.httpMessageLength, 0);
@@ -249,7 +236,7 @@ void SimpleHttpServer_t::process_worker_events(int worker_idx)
 //			break;
 //		}
 		new_events =
-				kevent(worker_kfd, NULL, 0, working_events[worker_idx], 1, NULL);
+				kevent(worker_kfd, NULL, 0, working_events[worker_idx], NUM_EVENTS, NULL);
 
 		if (new_events == -1)
 		{
@@ -257,6 +244,7 @@ void SimpleHttpServer_t::process_worker_events(int worker_idx)
 			exit(EXIT_FAILURE);
 		}
 
+		std::cout << "TRIGGERED EVENTS: " << new_events << std::endl;
 		for (int i = 0; i < new_events; i++)
 		{
 			int event_fd = working_events[worker_idx][i].ident;
@@ -276,7 +264,7 @@ void SimpleHttpServer_t::process_worker_events(int worker_idx)
 					std::cout << "ERRNO: " << errno << std::endl;
 				}
 				delete sockInfo;
-				std::cout << "COUNTER: " << --counter << std::endl;
+//				std::cout << "COUNTER: " << --counter << std::endl;
 			}
 
 				// If the new event's file descriptor is the same as the
@@ -295,7 +283,7 @@ void SimpleHttpServer_t::process_worker_events(int worker_idx)
 				handle_write(sockInfo, std::move(httpRequest));
 			}
 
-			std::cout << "COUNTER: " << counter << std::endl;
+//			std::cout << "COUNTER: " << counter << std::endl;
 		}
 	}
 }

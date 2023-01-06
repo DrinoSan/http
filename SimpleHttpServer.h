@@ -34,7 +34,7 @@ namespace fs = std::filesystem;
 // Defining of some values
 constexpr int BACK_LOG = 10000;
 constexpr int NUM_WORKERS = 5;
-constexpr int NUM_EVENTS = 10000;
+constexpr int NUM_EVENTS = 100;
 constexpr int CHUNK_SIZE = 1000;
 
 using HttpRequestHandler_t =
@@ -92,6 +92,7 @@ private:
 
 	sockInfos_t listeningSocket;
 
+	// Kqueue stuff
 	int working_kqueue_fd[NUM_WORKERS];
 	struct kevent working_events[NUM_WORKERS][NUM_EVENTS];
 	struct kevent working_chevents[NUM_WORKERS][NUM_EVENTS];
