@@ -19,6 +19,7 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <netdb.h>
 
 
 // Project Headers
@@ -62,8 +63,6 @@ public:
 private:
 	int setNonBlocking(int sockfd);
 
-	void createSocket();
-
 	void listen_and_accept();
 
 	void prepare_kqueue_events();
@@ -84,11 +83,6 @@ private:
 	struct sockInfos_t
 	{
 		int sockfd;
-		uintptr_t ptrAddress;
-		HttpRequest_t httpReq;
-		HttpResponse_t httpResp;
-		std::function<void(struct sockInfos_t* sockInfo)> read_handler;
-		std::function<void(struct sockInfos_t* sockinfo)> write_handler;
 	};
 
 private:
@@ -109,6 +103,13 @@ private:
 
 	// Handler for not registerd paths
 	HttpResponse_t pageNotFound(HttpRequest_t* httpReq);
+
+
+	int sockfd;  // listen on sock_fd, new connection on new_fd
+	struct addrinfo hints, *servinfo, *p;
+	struct sockaddr_storage their_addr; // connector's address information
+	socklen_t sin_size;
+	char s[INET6_ADDRSTRLEN];
 };
 
 #endif  // SIMPLEHTTPSERVER2_SIMPLEHTTPSERVER_H

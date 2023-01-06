@@ -69,10 +69,12 @@ int SimpleHttpServer_t::setNonBlocking(int sockfd)
 }
 
 volatile sig_atomic_t flag = 0;
+
 void cleanup(int sig)
 {
 	flag = 1;
 }
+
 //----------------------------------------------------------------------------
 void SimpleHttpServer_t::listen_and_accept()
 {
@@ -89,8 +91,7 @@ void SimpleHttpServer_t::listen_and_accept()
 	{
 		auto* newSocketConnection = new sockInfos_t;
 		newSocketConnection->sockfd =
-				accept(listeningSocket.sockfd, (struct sockaddr*)&client_addr,
-						(socklen_t*)&client_len);
+				accept(sockfd, (struct sockaddr*)&their_addr, &sin_size);
 		++counter;
 		if (newSocketConnection->sockfd == -1)
 		{
@@ -170,9 +171,9 @@ void SimpleHttpServer_t::handle_write(SimpleHttpServer_t::sockInfos_t* sockInfo,
 		{
 			// Index 0 should be the basic path
 			uri = "/" + tokens[0] + "/";
-			for(size_t i = 1; i < tokens.size(); ++i)
+			for (size_t i = 1; i < tokens.size(); ++i)
 			{
-				if(i == tokens.size()-1)
+				if (i == tokens.size() - 1)
 				{
 					httpRequest.resource += tokens[i];
 					break;
@@ -302,36 +303,97 @@ void SimpleHttpServer_t::process_worker_events(int worker_idx)
 //----------------------------------------------------------------------------
 bool SimpleHttpServer_t::startServer(std::string ipAddr, int64_t port)
 {
-	sockaddr_in sockaddr;
-	sockaddr.sin_family = AF_INET;
-	if (ipAddr != "")
-	{
-		inet_pton(AF_INET, ipAddr.c_str(), &(sockaddr.sin_addr));
-	}
-	else
-	{
-		sockaddr.sin_addr.s_addr = INADDR_ANY;
-	}
-	sockaddr.sin_port =
-			htons(port);  // Hton converts number to network byte order
+	memset(&hints, 0, sizeof hints);
+	hints.ai_family = AF_UNSPEC;	// I dont care ipv4 or 6
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_PASSIVE; // use my IP
 
-	// Setting socket to non blocking
-	//setNonBlocking(listeningSocket.sockfd);
-
-	if (bind(listeningSocket.sockfd, (struct sockaddr*)&sockaddr,
-			sizeof(sockaddr)) < 0)
+	int rv;
+	if ((rv = getaddrinfo(NULL, std::to_string(port).c_str(), &hints, &servinfo)) != 0)
 	{
-		std::cout << "Failed to bind to port " << port << ". errno: " << errno
-				  << std::endl;
-		return false;
+		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
+		return 1;
 	}
 
-	// Start listening. Hold at most BACKL_LOG connection in the queue
-	if (listen(listeningSocket.sockfd, BACK_LOG) < 0)
+	int yes = 1;
+	// loop through all the results and bind to the first we can
+	for (p = servinfo; p != NULL; p = p->ai_next)
 	{
-		std::cout << "Failed to listen on socket. errno: " << errno << std::endl;
-		exit(EXIT_FAILURE);
+		if ((sockfd = socket(p->ai_family, p->ai_socktype,
+				p->ai_protocol)) == -1)
+		{
+			std::cout << "server: socket" << std::endl;
+			continue;
+		}
+
+		// So I don't get the annoying failed to bind errors
+		if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes,
+				sizeof(int)) == -1)
+		{
+			std::cout << "setsockopt" << std::endl;
+			exit(1);
+		}
+
+		if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1)
+		{
+			close(sockfd);
+			std::cout << "server: bind" << std::endl;
+			continue;
+		}
+
+		break;
 	}
+
+	freeaddrinfo(servinfo); // all done with this structure
+
+	if (p == NULL)
+	{
+		fprintf(stderr, "server: failed to bind\n");
+		exit(1);
+	}
+
+	if (listen(sockfd, BACK_LOG) == -1)
+	{
+		std::cout << "listen" << std::endl;
+		exit(1);
+	}
+
+
+
+
+
+
+
+//	sockaddr_in sockaddr;
+//	sockaddr.sin_family = AF_INET;
+//	if (ipAddr != "")
+//	{
+//		inet_pton(AF_INET, ipAddr.c_str(), &(sockaddr.sin_addr));
+//	}
+//	else
+//	{
+//		sockaddr.sin_addr.s_addr = INADDR_ANY;
+//	}
+//	sockaddr.sin_port =
+//			htons(port);  // Hton converts number to network byte order
+//
+//	// Setting socket to non blocking
+//	//setNonBlocking(listeningSocket.sockfd);
+//
+//	if (bind(listeningSocket.sockfd, (struct sockaddr*)&sockaddr,
+//			sizeof(sockaddr)) < 0)
+//	{
+//		std::cout << "Failed to bind to port " << port << ". errno: " << errno
+//				  << std::endl;
+//		return false;
+//	}
+//
+//	// Start listening. Hold at most BACKL_LOG connection in the queue
+//	if (listen(listeningSocket.sockfd, BACK_LOG) < 0)
+//	{
+//		std::cout << "Failed to listen on socket. errno: " << errno << std::endl;
+//		exit(EXIT_FAILURE);
+//	}
 
 	// Here we need to setup the kqueue for each worker thread
 	prepare_kqueue_events();
