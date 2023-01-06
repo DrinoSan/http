@@ -54,7 +54,7 @@ public:
 				tmp.emplace_back(itr->GetInt());
 			}
 
-			return tmp;
+			return std::move(tmp);
 		}
 		else if constexpr (std::is_same<T, std::vector<std::string>>::value)
 		{

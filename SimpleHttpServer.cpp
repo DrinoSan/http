@@ -358,43 +358,6 @@ bool SimpleHttpServer_t::startServer(std::string ipAddr, int64_t port)
 		exit(1);
 	}
 
-
-
-
-
-
-
-//	sockaddr_in sockaddr;
-//	sockaddr.sin_family = AF_INET;
-//	if (ipAddr != "")
-//	{
-//		inet_pton(AF_INET, ipAddr.c_str(), &(sockaddr.sin_addr));
-//	}
-//	else
-//	{
-//		sockaddr.sin_addr.s_addr = INADDR_ANY;
-//	}
-//	sockaddr.sin_port =
-//			htons(port);  // Hton converts number to network byte order
-//
-//	// Setting socket to non blocking
-//	//setNonBlocking(listeningSocket.sockfd);
-//
-//	if (bind(listeningSocket.sockfd, (struct sockaddr*)&sockaddr,
-//			sizeof(sockaddr)) < 0)
-//	{
-//		std::cout << "Failed to bind to port " << port << ". errno: " << errno
-//				  << std::endl;
-//		return false;
-//	}
-//
-//	// Start listening. Hold at most BACKL_LOG connection in the queue
-//	if (listen(listeningSocket.sockfd, BACK_LOG) < 0)
-//	{
-//		std::cout << "Failed to listen on socket. errno: " << errno << std::endl;
-//		exit(EXIT_FAILURE);
-//	}
-
 	// Here we need to setup the kqueue for each worker thread
 	prepare_kqueue_events();
 
@@ -419,19 +382,6 @@ bool SimpleHttpServer_t::startServer(std::string ipAddr, int64_t port)
 	std::cout << "WE ARE FINISHED HERE AND ARE CLOSING THE PROGRAM" << std::endl;
 
 	return true;
-}
-
-//----------------------------------------------------------------------------
-void SimpleHttpServer_t::createSocket()
-{
-	// Create a socket (IPv4, TCP)
-	listeningSocket.sockfd = socket(AF_INET, SOCK_STREAM, 0);
-
-	if (listeningSocket.sockfd == -1)
-	{
-		std::cout << "Failed to create socket. errno: " << errno << std::endl;
-		exit(EXIT_FAILURE);
-	}
 }
 
 //----------------------------------------------------------------------------
@@ -465,13 +415,9 @@ void SimpleHttpServer_t::serve_static_file(const fs::path& root_dir,
 		response.statusCode = HttpResponse_t::HttpStatusCode::Forbidden;
 		response.setHeader("Content-Length", "0");
 		response.setHeader("Content-Type", "text/html");
-//        stream << "HTTP/1.1 403 Forbidden\r\n";
-//        stream << "Content-Length: 0\r\n";
-//        stream << "\r\n";
 		return;
 	}
 
-	std::cout << "PATH: " << path << " root_dir: " << root_dir << std::endl;
 	// Append the requested path to the root directory
 	auto file_path = root_dir / path;
 
@@ -485,9 +431,6 @@ void SimpleHttpServer_t::serve_static_file(const fs::path& root_dir,
 		response.setHeader("Content-Type", "text/html");
 
 		stream << "<h1>404 Page Not found</h1>";
-//        stream << "HTTP/1.1 404 Not Found\r\n";
-//        stream << "Content-Length: 0\r\n";
-//        stream << "\r\n";
 		return;
 	}
 
@@ -518,14 +461,8 @@ void SimpleHttpServer_t::serve_static_file(const fs::path& root_dir,
 	}
 
 	// Send the response headers
-//    stream << "HTTP/1.1 200 OK\r\n";
 	response.setHeader("Content-Type", content_type);
 	response.setHeader("Content-Length", std::to_string(size));
-
-
-//    stream << "Content-Length: " << size << "\r\n";
-//    stream << "Content-Type: " << content_type << "\r\n";
-//    stream << "\r\n";
 
 	// Send the file contents
 	stream << file.rdbuf();
