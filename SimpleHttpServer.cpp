@@ -256,7 +256,7 @@ void SimpleHttpServer_t::process_worker_events(int worker_idx)
 			exit(EXIT_FAILURE);
 		}
 
-		std::cout << "TRIGGERED EVENTS: " << new_events << std::endl;
+		std::cout << "WorkerFD: " << worker_kfd << " TRIGGERED EVENTS: " << new_events << std::endl;
 		for (int i = 0; i < new_events; i++)
 		{
 			int event_fd = working_events[worker_idx][i].ident;
