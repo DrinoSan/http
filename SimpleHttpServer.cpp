@@ -132,9 +132,21 @@ HttpRequest_t SimpleHttpServer_t::handle_read(
 	HttpRequest_t httpRequest;
 	memset(httpRequest.buffer, '\0', BUFFER_SIZE);
 
-	auto bytesRead = recv(sockInfo->sockfd, httpRequest.buffer, BUFFER_SIZE, 0);
-	if (bytesRead < 5)
-		return httpRequest;
+
+	int bytesRead;
+	while((bytesRead = recv(sockInfo->sockfd, httpRequest.buffer, BUFFER_SIZE, 0)))
+	{
+		if(bytesRead <= 0)
+		{
+			// We have a error or client closed connection
+			break;
+		}
+		if(strstr(httpRequest.buffer, "\r\n\r\n"))
+		{
+			// We found end
+			break;
+		}
+	}
 
 	httpParser.mapHeaders(httpRequest);
 

@@ -11,7 +11,7 @@
 // Project Headers
 #include "HttpMessage_t.h"
 
-#define BUFFER_SIZE 20000
+#define BUFFER_SIZE 3000
 
 class HttpRequest_t : public HttpMessage_t
 {
