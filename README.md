@@ -29,7 +29,6 @@ Will check to move todos to issues. I don't like it like that anymore
       - Public members
       - Private methodes
       - Private members
-  - I am only here for the new year commit
 
 
 # Serving static files
