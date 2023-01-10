@@ -1,0 +1,26 @@
+cmake_minimum_required(VERSION 3.16)
+project(simpleHttpServer2)
+
+set(CMAKE_CXX_STANDARD 17)
+
+set(CMAKE_PREFIX_PATH /usr/local/lib)
+
+link_directories(/home/blog/libqkeueue/build)
+
+include_directories(/usr/include)
+
+find_package(Threads REQUIRED)
+
+
+find_library(LIBEVENT_LIB NAMES libevent.so libevent-2.1.so.7.0.1 libevent_core.so libevent_extra.so libevent_core-2.1.so.7.0.1 libkqueue.so PATHS /usr/local/lib)
+
+
+file(GLOB SimpleHttpserverFiles_SRC
+        "*.h"
+        "*.cpp"
+        )
+
+add_executable(simpleHttpServer2 ${SimpleHttpserverFiles_SRC})
+target_link_libraries(simpleHttpServer2 ${LIBEVENT_LIB})
+target_link_libraries(simpleHttpServer2 ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(simpleHttpServer2 ${LIBEVENT_LIB} kqueue)
