@@ -104,7 +104,11 @@ void SimpleHttpServer_t::listen_and_accept()
 				NULL, 0, NULL) < 0)
 		{
 			std::cout << "kevent error 3: " << errno << std::endl;
-			exit(EXIT_FAILURE);
+			if(errno != 0)
+			{
+				exit(EXIT_FAILURE);
+			}
+			std::cout << "Kevent returned -1, but we will ignore this because errno indicates success" << std::endl;
 		}
 
 		++worker_idx;
