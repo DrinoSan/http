@@ -109,6 +109,7 @@ void SimpleHttpServer_t::listen_and_accept()
 				exit(EXIT_FAILURE);
 			}
 			std::cout << "Kevent returned -1, but we will ignore this because errno indicates success" << std::endl;
+			std::cout << "working_chevents[worker_idx]->fflags" << working_chevents[worker_idx]->fflags << std::endl;
 			continue;
 		}
 
