@@ -21,6 +21,8 @@
 #include <vector>
 #include <netdb.h>
 #include <openssl/ssl.h>
+#include <openssl/err.h>
+#include <netinet/in.h>
 
 
 // Project Headers
@@ -73,6 +75,9 @@ private:
 	std::vector<std::string> split_path(const std::string& path, char delimiter);
 
 private:
+	SSL_CTX *ssl_context;
+	SSL *ssl;
+
 	HttpParser_t httpParser;
 	std::map<std::string, std::string> http_request;
 	std::filesystem::path root;

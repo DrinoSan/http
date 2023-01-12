@@ -3,7 +3,11 @@ project(simpleHttpServer2)
 
 set(CMAKE_CXX_STANDARD 17)
 
-include_directories(/opt/homebrew/Cellar/openssl@3/3.0.7/include)
+
+find_package(OpenSSL REQUIRED)
+
+# this is in the .zsrhc exported
+include_directories(${OPENSSL_INCLUDE_DIR})
 
 file(GLOB SimpleHttpserverFiles_SRC
         "*.h"
@@ -11,3 +15,4 @@ file(GLOB SimpleHttpserverFiles_SRC
         )
 
 add_executable(simpleHttpServer2 ${SimpleHttpserverFiles_SRC})
+target_link_libraries(simpleHttpServer2 ${OPENSSL_LIBRARIES})

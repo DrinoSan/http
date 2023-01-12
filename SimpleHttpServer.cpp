@@ -33,6 +33,18 @@ void* get_in_addr(struct sockaddr* sa)
 //----------------------------------------------------------------------------
 SimpleHttpServer_t::SimpleHttpServer_t()
 {
+	// Initialize the SSL library
+	SSL_library_init();
+	SSL_load_error_strings();
+	OpenSSL_add_all_algorithms();
+
+	// Create an SSL context
+	ssl_context = SSL_CTX_new(SSLv23_server_method());
+
+	// Configure the SSL context
+	SSL_CTX_use_certificate_file(ssl_context, "../certs/certificate.pem", SSL_FILETYPE_PEM);
+	SSL_CTX_use_PrivateKey_file(ssl_context, "../certs/private_key.pem", SSL_FILETYPE_PEM);
+
 	kq = kqueue();
 }
 
@@ -92,6 +104,15 @@ void SimpleHttpServer_t::listen_and_accept()
 			continue;
 		}
 
+		ssl = SSL_new(ssl_context);
+
+		// Set the SSL object's file descriptor
+		SSL_set_fd(ssl, newSocketConnection->sockfd);
+
+		// Perform the SSL handshake
+		SSL_accept(ssl);
+
+
 		inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr*)&their_addr), s, sizeof s);
 		std::cout << "Server: got connection from " << s << std::endl;
 
@@ -140,7 +161,7 @@ HttpRequest_t SimpleHttpServer_t::handle_read(
 
 
 	int bytesRead;
-	while((bytesRead = recv(sockInfo->sockfd, httpRequest.buffer, BUFFER_SIZE, 0)))
+	while((bytesRead = SSL_read(ssl, httpRequest.buffer, BUFFER_SIZE)))
 	{
 		if(bytesRead <= 0)
 		{
@@ -195,8 +216,8 @@ void SimpleHttpServer_t::handle_write(SimpleHttpServer_t::sockInfos_t* sockInfo,
 	if (it_uri == requestHandler.end())
 	{
 		HttpResponse_t httpResponse = pageNotFound(&httpRequest);
-		send(sockInfo->sockfd, httpResponse.httpMessage.data(),
-				httpResponse.httpMessageLength, 0);
+		SSL_write(ssl, httpResponse.httpMessage.data(),
+				httpResponse.httpMessageLength);
 		return;
 	}
 
@@ -219,7 +240,7 @@ void SimpleHttpServer_t::handle_write(SimpleHttpServer_t::sockInfos_t* sockInfo,
 			chunk_size = CHUNK_SIZE;
 		}
 
-		auto bytes_sent = send(sockInfo->sockfd, response.httpMessage.data() + data_sent, chunk_size, 0);
+		auto bytes_sent = SSL_write(ssl, response.httpMessage.data() + data_sent, chunk_size);
 
 		data_sent += bytes_sent;
 	}

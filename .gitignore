@@ -6,3 +6,4 @@ build
 simpleHttpServer2
 .vscode
 cmake_install.cmake
+/certs/
