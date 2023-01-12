@@ -20,6 +20,7 @@
 #include <thread>
 #include <vector>
 #include <netdb.h>
+#include <openssl/ssl.h>
 
 
 // Project Headers
